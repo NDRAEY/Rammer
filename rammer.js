@@ -1,7 +1,7 @@
-var version = "2.0"
-var codename = "Railway"
+var version = "2.0.2"
+var codename = "Swing"
 var buildnumber = "245"
-var funnyphrase = "У нас есть кнут, но нету пряника. А зря! Пряник то вкусный"
+var funnyphrase = "Хлеб да вода, полная фигня!!!"
 var isbeta = true
 var background_default = "/Sys/Img/GreenBack.jpg"
 var background = app.LoadText( "background","/Sys/Img/GreenBack.jpg" )
@@ -121,7 +121,6 @@ buttonvideo.SetOnTouch( video_activity );
 layotherhoz.AddChild( buttonvideo );
 
 layotherwgt = app.CreateLayout( "Linear", "Horizontal" );
-
 layother.AddChild( layotherwgt );
 
 calltime()
@@ -589,10 +588,11 @@ layappsbtn.AddChild( changewallpapersbtn );
 dsmsbtn = app.CreateButton( "DSMS" );
 dsmsbtn.SetOnTouch( dsms_activity );
 layappsbtn.AddChild( dsmsbtn );
-testappbtn = app.CreateButton( "Тест. приложение" );
-testappbtn.SetOnTouch( runtestapp );
-layappsbtn1.AddChild( testappbtn );
 //КОНЕЦ <<2
+tmp_data.apps = app.ListFolder( "/sdcard/Rammer/Apps/" );
+appslist = app.CreateList( tmp_data.apps );
+appslist.SetOnTouch( runapp );
+layapps.AddChild( appslist );
 addclosebtnapps(layappsbtn)
 app.AddLayout( layapps );
 }
@@ -1044,7 +1044,7 @@ function get_tmp_data()
 {
 	return JSON.stringify(tmp_data)
 }
-
+/*
 function runtestapp()
 {
 if( app.FileExists( "/sdcard/Rammer/Apps/test.js" ) ) {
@@ -1054,4 +1054,13 @@ eval( code );
 rammer_message("Нет программы в '/sdcard/Rammer/Apps/test.js'. Поместите файл test.js по этому пути. Документация будет доступна потом. ")
 //alert(get_tmp_data())
 }
+}
+*/
+
+//ЭТОТ КОД ОБЯЗАН БЫТЬ В КОНЦЕ
+function runapp(name)
+{
+	code = app.ReadFile( "/sdcard/Rammer/Apps/"+name+"/main.js" );
+tmp_data.assetslocation = "/sdcard/Rammer/Apps/"+name+"/"
+eval(code)
 }
