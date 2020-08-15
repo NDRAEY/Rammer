@@ -1,6 +1,6 @@
-var version = "2.0.8"
-var codename = "Horizon"
-var buildnumber = "2642"
+var version = "2.1"
+var codename = "Vodka"
+var buildnumber = "2892"
 var funnyphrase = "Из мысли в реальность!"
 var isbeta = true
 var background_default = "/Sys/Img/GreenBack.jpg"
@@ -159,6 +159,10 @@ layother1hoz.AddChild( buttonvideolive );
 buttonnotes = app.CreateButton( "Заметки" );
 buttonnotes.SetOnTouch( notes_activity );
 layother1hoz.AddChild( buttonnotes );
+
+buttonyoutube = app.CreateButton( "YouTube" );
+buttonyoutube.SetOnTouch( youtube_activity );
+layother1hoz.AddChild( buttonyoutube );
 
 layotherwgt = app.CreateLayout( "Linear", "Horizontal" );
 layother.AddChild( layotherwgt );
@@ -394,6 +398,10 @@ backbtnbrowser = app.CreateButton( "<Back>",null, 0.06);
 backbtnbrowser.SetOnTouch(function(){browser.Back()});
 gobtn.SetOnTouch( function () {
 browser.LoadUrl(addressurlbar.GetText())
+});
+gobtn.SetOnLongTouch( function () {
+app.SetClipboardText( addressurlbar.GetText() );
+rammer_message("Скопировано!")
 });
 addclosebtnbrowser(laybrowser)
 laybrowser.AddChild( laybrowserhoz );
@@ -1168,7 +1176,7 @@ layvideohoz = app.CreateLayout( "Linear", "Horizontal" );
 layvideo.SetBackColor( "gray" );
 // НАЧАЛО КОДА >> 4
 videoplayer = app.CreateVideoView( 1,0.8 );
-urlboxtxt = app.CreateTextEdit( "",1 );
+urlboxtxt = app.CreateTextEdit( "",1, null, "SingleLine" );
 url=""
 btnvideoplay = app.CreateButton( "[fa-play]", null, null, "FontAwesome" );
 btnvideoplay.SetOnTouch( function() {
@@ -1282,6 +1290,108 @@ app.RemoveLayout( lay );
 app.RemoveLayout( noteslay );
 } );
 }
+
+function addclosebtnyt(lay)
+{
+	closebtn = app.CreateButton( "Закрыть" );
+  lay.AddChild(closebtn)
+  closebtn.SetOnTouch( function() {
+app.RemoveLayout( lay );
+app.RemoveLayout( youtubelay );
+app.RemoveLayout( skbvidytlay );
+} );
+}
+
+function youtube_activity()
+{
+	var ytdataenc = "";
+var ytncdata = "";
+var ytvideolist = [];
+var url_given = "";
+var ytvidid = url_given.replace("https://youtube.com/watch?v=","").replace("https://youtu.be/","")
+var ytrequrl = "https://www.youtube.com/get_video_info?video_id="+ytvidid+"&el=previewpage&hl=en_US"
+var ytskbinterv = ""
+
+youtubelay = app.CreateLayout( "linear", "Vertical,FillXY" );	
+youtubelay.SetBackColor( "gray" );
+youtubelayhoz = app.CreateLayout( "Linear", "Horizontal" );
+
+youtubevid = app.CreateVideoView( 1, 0.4 );
+youtubevid.SetOnError( function(e) {alert("Error: "+e)} );
+youtubelay.AddChild( youtubevid );
+
+youtubetxtprompt = app.CreateTextEdit( "", 1 );
+youtubetxtprompt.SetHint( "Вствьте URL с ютуба и нажмите на треугольник" );
+
+ytvendormetka = app.CreateText( "" );
+ytvendormetka1 = app.CreateText( "" );
+
+skbvidytlay = app.CreateLayout( "Linear", "Horizontal" );
+
+skbvideoyoutube = app.CreateSeekBar( 0.7 );
+
+ytbtnplay = app.CreateButton( "[fa-play]", null, null, "FontAwesome" );
+ytbtnplay.SetOnTouch( function() {
+// HTTP START
+url_given = youtubetxtprompt.GetText();
+var ytvidid = url_given.replace("https://youtube.com/watch?v=","").replace("https://youtu.be/","")
+var ytrequrl = "https://www.youtube.com/get_video_info?video_id="+ytvidid+"&el=previewpage&hl=en_US"
+//alert(id)
+app.HttpRequest( "GET", ytrequrl, null, null, function(scs, data) {
+try{
+ytdataenc = decodeURIComponent(data).split("&")
+}
+catch(e) {
+rammer_error("Введите URL видео с ютуба")
+}
+for(i=0; i<ytdataenc.length; i++) {
+if( ytdataenc[i].match(/\bplayer_response*/) == "player_response" ) {
+try{
+ytencdata = JSON.parse(ytdataenc[i].replace("player_response=","")).streamingData.formats[0].url
+}
+catch(e) { rammer_error("Ошибка нахождения видео") }
+youtubevid.SetFile( decodeURIComponent(ytencdata))
+youtubevid.Play();
+ytskbinterv = setInterval(function() {
+ytduration = youtubevid.GetDuration();
+ytcurpos = youtubevid.GetPosition();
+ytcurpos_dec = Math.ceil(ytcurpos)
+ytduration_dec = Math.ceil(ytduration)
+skbvideoyoutube.SetRange( ytduration );
+skbvideoyoutube.SetValue( ytcurpos );
+ytvendormetka.SetText( ytcurpos_dec );
+ytvendormetka1.SetText( ytduration_dec );
+},100)
+// break;
+}}}); // << THIS IS END OF HTTP REQUEST AND 'IF' AND 'FOR'
+
+youtubevid.Play();
+});
+skbvideoyoutube.SetOnTouch( function(event) {
+youtubevid.SeekTo( event );
+});
+// 2 END
+ytbtnstop = app.CreateButton( "[fa-stop]",null, null, "fontawesome" );
+ytbtnstop.SetOnTouch( function() {
+clearInterval(ytskbinterv)
+youtubevid.Stop();
+});
+
+youtubelay.AddChild( youtubetxtprompt );
+youtubelay.AddChild( skbvidytlay );
+skbvidytlay.AddChild( ytvendormetka );
+skbvidytlay.AddChild( skbvideoyoutube );
+skbvidytlay.AddChild( ytvendormetka1 );
+youtubelay.AddChild( youtubelayhoz );
+youtubelayhoz.AddChild( ytbtnplay );
+youtubelayhoz.AddChild( ytbtnstop );
+addclosebtnyt(youtubelayhoz)
+
+	//Add layout to app.
+	app.AddLayout( youtubelay );
+}
+
+
 
 //ЭТОТ КОД ОБЯЗАН БЫТЬ В КОНЦЕ
 function runapp(name)
