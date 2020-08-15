@@ -1,7 +1,7 @@
-var version = "2.0.2"
-var codename = "Swing"
-var buildnumber = "245"
-var funnyphrase = "Хлеб да вода, полная фигня!!!"
+var version = "2.0.8"
+var codename = "Horizon"
+var buildnumber = "2642"
+var funnyphrase = "Из мысли в реальность!"
 var isbeta = true
 var background_default = "/Sys/Img/GreenBack.jpg"
 var background = app.LoadText( "background","/Sys/Img/GreenBack.jpg" )
@@ -23,6 +23,8 @@ var bootanimationtime = 2000
 }else{
 var bootanimationtime = 4000
 }
+var fullscreen = false
+if( fullscreen ) app.SetScreenMode( "Full" );
 //Called when application is started.
 function OnStart()
 {
@@ -73,6 +75,31 @@ laymainbtns.AddChild( buttons );
 buttonbrowser = app.CreateButton( "Браузер" );
 laymainbtns.AddChild( buttonbrowser );
 
+// НАЧИНАЕТСЯ СТАТУС БАР
+
+layotherstatusbar = app.CreateLayout( "Linear", "Horizontal" );
+layotherstatusbar.SetBackColor( "gray" );
+layotherstatusbar.SetSize( 1,0.04 );
+layother.AddChild( layotherstatusbar );
+
+layotherothbar = app.CreateLayout( "Linear", "Horizontal,Left" );
+//layotherothbar.SetBackColor( "gray" );
+layotherothbar.SetSize( 0.7,0.04 );
+layotherstatusbar.AddChild( layotherothbar );
+
+
+layothermainbar = app.CreateLayout( "Linear", "Horizontal,Right" );
+//layothermainbar.SetBackColor( "gray" );
+layothermainbar.SetSize( 0.3,0.04 );
+layotherstatusbar.AddChild( layothermainbar );
+
+if(debug==true) {
+layothermainbar.SetBackColor( "red" );
+layotherothbar.SetBackColor( "green" );
+}
+
+// КОНЕЦ
+
 buttonphone.SetOnTouch( phone );
 buttonbrowser.SetOnTouch( browser_activity );
 
@@ -100,6 +127,11 @@ layother.AddChild( layotherhoz );
 layother1hoz = app.CreateLayout( "Linear", "Horizontal" );
 layother.AddChild( layother1hoz );
 
+txtstatus = app.CreateText( "", null, null, "FontAwesome" );
+layothermainbar.AddChild( txtstatus );
+txtstatus.SetTextColor( "white" );
+txtstatus.SetTextSize( "22" );
+
 buttonmusic = app.CreateButton( "Музыка" );
 buttonmusic.SetOnTouch( music_activity );
 layotherhoz.AddChild( buttonmusic );
@@ -119,6 +151,14 @@ layotherhoz.AddChild( buttonphoto );
 buttonvideo = app.CreateButton( "Видео" );
 buttonvideo.SetOnTouch( video_activity );
 layotherhoz.AddChild( buttonvideo );
+
+buttonvideolive = app.CreateButton( "IPTV" );
+buttonvideolive.SetOnTouch( livevideoapp );
+layother1hoz.AddChild( buttonvideolive );
+
+buttonnotes = app.CreateButton( "Заметки" );
+buttonnotes.SetOnTouch( notes_activity );
+layother1hoz.AddChild( buttonnotes );
 
 layotherwgt = app.CreateLayout( "Linear", "Horizontal" );
 layother.AddChild( layotherwgt );
@@ -165,21 +205,42 @@ tmp_data.seconds = seconds
 tmp_data.day = day
 tmp_data.month = month
 tmp_data.year = year
+tmp_data.battery_percent = Math.ceil(app.GetBatteryLevel() * 100)
+tmp_data.battery_charging = app.GetChargeType();
 
 txttime.SetText( hours+":"+minutes );
 txtdate.SetText( day+"/"+month+"/"+year+" "+daysofweek[ time.getUTCDay() ] );
 txtnotif.SetText( notification );
+if( tmp_data.battery_charging!="None" ) {
+if(tmp_data.battery_percent<=25) {
+txtstatus.SetText( "[fa-battery-1][fa-bolt] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=25 && tmp_data.battery_percent<=50) {
+txtstatus.SetText( "[fa-battery-2][fa-bolt] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=50 && tmp_data.battery_percent<=75) {
+txtstatus.SetText( "[fa-battery-3][fa-bolt] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=75 && tmp_data.battery_percent<=100) {
+txtstatus.SetText( "[fa-battery-4][fa-bolt] "+tmp_data.battery_percent + "%" )
+}else{
+txtstatus.SetText( "[fa-battery-4][fa-bolt]"+tmp_data.battery_percent + "%" )
+}
+}else{
+if(tmp_data.battery_percent<=25) {
+txtstatus.SetText( "[fa-battery-1] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=25 && tmp_data.battery_percent<=50) {
+txtstatus.SetText( "[fa-battery-2] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=50 && tmp_data.battery_percent<=75) {
+txtstatus.SetText( "[fa-battery-3] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=75 && tmp_data.battery_percent<=100) {
+txtstatus.SetText( "[fa-battery-4] "+tmp_data.battery_percent + "%" )
+}else{
+txtstatus.SetText( "[fa-battery-4] "+tmp_data.battery_percent + "%" )
+}
+}
 }
 
 function drawdrawer()
 {
 laystatus = app.CreateLayout( "Linear", "Vertical" );
-	drawermaintext = app.CreateText( "", null, null, "FontAwesome" ); 
-setInterval(function() {
-batterylevel = app.GetBatteryLevel()*100
-drawermaintext.SetText( "[fa-battery-full]  " + Math.ceil(batterylevel) + "%   [fa-signal]  " + app.GetRSSI() + " dbm (значения неверные)");
-},1000)
-laystatus.AddChild( drawermaintext );
 laydrawer.AddChild( laystatus );
 laybtnsdraw = app.CreateLayout( "Linear", "Horizontal" );
 laybtnsdraw1 = app.CreateLayout( "Linear", "Horizontal" );
@@ -229,8 +290,9 @@ function addclosebtnbrowser(lay)
 	closebtn = app.CreateButton( "Закрыть", null, 0.06 );
   lay.AddChild(closebtn)
   closebtn.SetOnTouch( function() {
-app.RemoveLayout( lay );
 browser.LoadHtml("<b>Браузер остановлен для оптимизации.</b>");
+browser.Destroy();
+app.RemoveLayout( lay );
 } );
 }
 
@@ -412,7 +474,7 @@ stopmusicbtn = app.CreateButton( "[fa-stop]",null, null, "FontAwesome" );
 stopmusicbtn.SetOnTouch( function() {
 audioplayer.Stop();
 } );
-swloopmusic = app.CreateToggle( "[fa-replay]", null, null, "FontAwesome" );
+swloopmusic = app.CreateToggle( "Повторять музыку", null, null, "FontAwesome" );
 swloopmusic.SetChecked( repeat_music );
 swloopmusic.SetOnTouch( function(yn) {
 repeat_music = yn
@@ -587,9 +649,15 @@ changewallpapersbtn.SetOnTouch( changewallpapers );
 layappsbtn.AddChild( changewallpapersbtn );
 dsmsbtn = app.CreateButton( "DSMS" );
 dsmsbtn.SetOnTouch( dsms_activity );
-layappsbtn.AddChild( dsmsbtn );
+layappsbtn.AddChild( dsmsbtn )
+/*
+marketbtn = app.CreateButton( "Appz" );
+marketbtn.SetOnTouch( market_activity );
+layappsbtn.AddChild( marketbtn );
+*/
 //КОНЕЦ <<2
-tmp_data.apps = app.ListFolder( "/sdcard/Rammer/Apps/" );
+
+tmp_data.apps = app.ListFolder( "/sdcard/Rammer/Apps/", null, null, "Folders");
 appslist = app.CreateList( tmp_data.apps );
 appslist.SetOnTouch( runapp );
 layapps.AddChild( appslist );
@@ -729,16 +797,37 @@ msgtxt = app.CreateText( "", null, null, "FontAwesome" );
 txttimelock.SetTextSize( 28 );
 txtdatelock.SetTextSize( 24 );
 statustxt.SetTextSize( statustxt.GetTextSize( )+6 );
-batterylevel = Math.ceil(app.GetBatteryLevel()*100)
 txttimelock.SetText( hours+":"+minutes );
 txtdatelock.SetText( day+"/"+month+"/"+year+" "+daysofweek[ time.getUTCDay() ] );
-statustxt.SetText( "[fa-battery-full] "+batterylevel+"%");
 var intlocktime = setInterval(function () {
 txttimelock.SetText( hours+":"+minutes );
 txtdatelock.SetText( day+"/"+month+"/"+year+" "+daysofweek[ time.getUTCDay() ] );
-batterylevel = Math.ceil(app.GetBatteryLevel()*100)
-statustxt.SetText( "[fa-battery-full] "+batterylevel+"%");
-},1000)
+if( tmp_data.battery_charging!="None" ) {
+if(tmp_data.battery_percent<=25) {
+statustxt.SetText( "[fa-battery-1][fa-bolt] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=25 && tmp_data.battery_percent<=50) {
+statustxt.SetText( "[fa-battery-2][fa-bolt] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=50 && tmp_data.battery_percent<=75) {
+statustxt.SetText( "[fa-battery-3][fa-bolt] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=75 && tmp_data.battery_percent<=100) {
+statustxt.SetText( "[fa-battery-4][fa-bolt] "+tmp_data.battery_percent + "%" )
+}else{
+statustxt.SetText( "[fa-battery-4][fa-bolt]"+tmp_data.battery_percent + "%" )
+}
+}else{
+if(tmp_data.battery_percent<=25) {
+statustxt.SetText( "[fa-battery-1] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=25 && tmp_data.battery_percent<=50) {
+statustxt.SetText( "[fa-battery-2] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=50 && tmp_data.battery_percent<=75) {
+statustxt.SetText( "[fa-battery-3] "+tmp_data.battery_percent + "%" )
+}else if(tmp_data.battery_percent>=75 && tmp_data.battery_percent<=100) {
+statustxt.SetText( "[fa-battery-4] "+tmp_data.battery_percent + "%" )
+}else{
+statustxt.SetText( "[fa-battery-4] "+tmp_data.battery_percent + "%" )
+}
+}
+},400)
 laylock.AddChild( txtdatelock );
 laylock.AddChild( txttimelock );
 laylock.AddChild( statustxt );
@@ -1056,6 +1145,143 @@ rammer_message("Нет программы в '/sdcard/Rammer/Apps/test.js'. По
 }
 }
 */
+/*
+function market_activity() {
+appdownloader = app.CreateDownloader(  );
+	laymarket = app.CreateLayout( "linear", "Vertical,FillXY" );	
+laymarket.SetBackColor( "gray" );
+	marketweb = app.CreateWebView( 1,0.9,"");
+mkreq = new XMLHttpRequest();
+mkreq.open('GET', 'http://c91451dc.beget.tech/rammer_store', false);
+mkreq.send()
+marketweb.LoadHtml( mkreq.responseText );
+addclosebtn(laymarket)
+	laymarket.AddChild( marketweb );
+	app.AddLayout( laymarket );
+}
+*/
+
+function livevideoapp()
+{
+		layvideo = app.CreateLayout( "Linear","Vertical,fillxy" );
+layvideohoz = app.CreateLayout( "Linear", "Horizontal" );
+layvideo.SetBackColor( "gray" );
+// НАЧАЛО КОДА >> 4
+videoplayer = app.CreateVideoView( 1,0.8 );
+urlboxtxt = app.CreateTextEdit( "",1 );
+url=""
+btnvideoplay = app.CreateButton( "[fa-play]", null, null, "FontAwesome" );
+btnvideoplay.SetOnTouch( function() {
+url= urlboxtxt.GetText();
+if(url=="") {
+rammer_error("Введите адрес видеопотока")
+}else{
+videoplayer.SetFile( url );
+}
+videoplayer.Play();
+});
+btnvideopause = app.CreateButton( "[fa-pause]", null, null, "FontAwesome" );
+btnvideopause.SetOnTouch( function() {
+videoplayer.Pause();
+});
+btnvideostop = app.CreateButton( "[fa-stop]", null, null, "FontAwesome" );
+btnvideostop.SetOnTouch( function() {
+videoplayer.Stop();
+clearInterval(tmp_data.svt)
+});
+layvideo.AddChild( urlboxtxt );
+layvideohoz.AddChild( btnvideoplay );
+layvideohoz.AddChild( btnvideopause );
+layvideohoz.AddChild( btnvideostop );
+layvideo.AddChild( videoplayer );
+// КОНЕЦ << 4
+addclosebtnvid(layvideo)
+layvideo.AddChild( layvideohoz );
+app.AddLayout( layvideo );
+}
+
+function notes_activity()
+{
+var notes = app.LoadText( "notes",[] );
+notes = notes.split(",")
+var lasttxt = ""
+var spl = ""
+
+noteslay = app.CreateLayout( "linear", "Vertical,FillXY" );	
+noteslist = app.CreateList( notes, 1, 0.8 );
+noteslay.SetBackColor( "gray" );
+noteslist.SetOnTouch( function (data){
+	alert(data)
+});
+noteslist.SetOnLongTouch( deleteaction );
+noteslay.AddChild( noteslist );
+
+noteslayhoz = app.CreateLayout( "Linear", "Horizontal" );
+notestxtedt = app.CreateTextEdit( "", 0.6, null );
+noteslayhoz.AddChild( notestxtedt );
+
+notesokbtn = app.CreateButton( "OK" )
+notesokbtn.SetOnTouch( addnote );
+noteslayhoz.AddChild( notesokbtn );
+
+notesclearbtn = app.CreateButton( "Очистить" )
+notesclearbtn.SetOnTouch( clearnotes );
+noteslay.AddChild( notesclearbtn );
+
+noteshinttext = app.CreateText( "Чтобы удалить заметку, нужно удерживать заметку.", null, null, "Multiline" );
+
+addclosebtnnotes(noteslayhoz)
+noteslay.AddChild( noteslayhoz );
+if(notes[0]=="") {
+notes.splice(0,1)
+}
+	//Add layout to app.	
+noteslay.AddChild( noteshinttext );
+	app.AddLayout( noteslay );
+
+function addnote()
+{
+notestext = notestxtedt.GetText();
+if( notestext!="" ) {
+notes.push(notestext)
+}
+app.SaveText( "notes",notes );
+noteslist.SetList( notes );
+lasttxt=notestext
+}
+
+function clearnotes()
+{
+notes=[]
+app.SaveText( "notes",notes );
+noteslist.SetList( notes );
+}
+
+function del(a,b,c)
+{
+if(a==spl) {
+	notes.splice(b,1)
+}
+app.SaveText( "notes",notes );
+noteslist.SetList( notes );
+}
+
+function deleteaction(data)
+{
+spl = data
+  notes.filter(del);
+}
+}
+
+function addclosebtnnotes(lay)
+{
+	closebtn = app.CreateButton( "Закрыть" );
+  lay.AddChild(closebtn)
+  closebtn.SetOnTouch( function() {
+app.RemoveLayout( lay );
+app.RemoveLayout( noteslay );
+} );
+}
 
 //ЭТОТ КОД ОБЯЗАН БЫТЬ В КОНЦЕ
 function runapp(name)
