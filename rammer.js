@@ -1,29 +1,44 @@
 // Rammer by Andrey Pavlenko
-var version, codename, buildnumber, funnyphrase, isbeta, background_default = null
-var background, phonenumber, defaulturl, debug, daysofweek = null
-var folder_exists, tmp_data, app_data, notification, folder = null
-var repeat_music, sh_rad, sh_dy, melodies, xcm, bootanimationtime = null
-var fullscreen, mpslast, soundonboot, settingslistmenu = null
-var scw, sch, mainscr, procs, notifs, livewallpapers, synth = null;
+// Testing by Nikita Serkov
+// Translated to English by Andrey Pavlenko
 
+// To switch language, go to Settings -> Language
+const version = "2.9.0.4"
+var codename, buildnumber, funnyphrase, isbeta, background_default = null
+var background, phonenumber, defaulturl, debug, daysofweek = null
+var folder_exists, tmp_data, app_data, lang, notification, folder = null
+var repeat_music, sh_rad, sh_dy, melodies, xcm, bootanimationtime = null
+var fullscreen, mpslast, soundonboot, settingslistmenu,dir,dirf = null
+var scw, sch, mainscr, procs, notifs, livewallpapers, synth, ntf, cmd_data = null;
+app.LoadScript( "builtins.js" );
 function init_vars() {
-version = "2.8.9"
-codename = "Homework"
-buildnumber = "15999" // ЭТО ИМИТАЦИЯ, НЕ ОБРАЩАЙТЕ ВНИМАНИЯ
-funnyphrase = "У кого подгорала жопа когда вы пытались открыть уведомления?"
+lang=app.LoadText( "syslang","en" );
+codename = "Mixture"
+buildnumber = "23183" // ЭТО ИМИТАЦИЯ, НЕ ОБРАЩАЙТЕ ВНИМАНИЯ // THIS IS IMITATION
+funnyphrase = "Я: програмиирую, Некит: тестирует, Rammer: русский, Отель: Trivago"
 isbeta = true
 background_default = "/Sys/Img/GreenBack.jpg"
 background = app.LoadText( "background","/Sys/Img/GreenBack.jpg" )
 phonenumber=""
-folder = "/sdcard/Rammer/"
+dir = ["sdcard","Rammer"]
+dirf = ["sdcard","Rammer"]
 scw = app.GetScreenWidth(  );
 sch = app.GetScreenHeight(  );
 defaulturl = "Html/wygl_start_page.html"
 debug = app.LoadBoolean("debug",false)
-// По JS дни начинаются с воскресенья
-daysofweek = ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"]
+// По JS дни начинаются с воскресенья // In JS days starts with Sunday
+daysofweek = [
+{ru:"Воскресенье",en:"Sunday"},
+{ru:"Понедельник",en:"Monday"},
+{ru:"Вторник",en:"Tuesday"},
+{ru:"Среда",en:"Wednesday"},
+{ru:"Четверг",en:"Thursday"},
+{ru:"Пятница",en:"Friday"},
+{ru:"Суббота",en:"Saturday"}
+]
 folder_exists = app.FolderExists( folder );
 tmp_data = {}
+cmd_data=""
 app_data = {}
 livewallpapers=false
 notification = ""
@@ -33,18 +48,32 @@ sh_dy = 0.05
 procs = []
 notifs = []
 melodies = ["Snd/melody1.mp3"]
-n = [
-{name:"Музыка",func:music_activity,icon:"Sys/Icon/music.png"}, /* Иконок нету :) */
-{name:"Файлы",func:files_activity},
-{name:"Фото",func:photo_activity},
-{name:"Камера",func:camera_activity},
-{name:"IPTV",func:livevideoapp},
-{name:"Заметки",func:notes_activity}
+el = [
+{name:{ru:"Музыка",en:"Music"},func:music_activity,icon:"Sys/Icon/music.png"}, /* Иконок нету :) */
+{name:{ru:"Файлы",en:"Files"},func:files_activity},
+{name:{ru:"Фото",en:"Photos"},func:photo_activity},
+{name:{ru:"Камера",en:"Camera"},func:camera_activity},
+{name:{ru:"IPTV",en:"IPTV"},func:livevideoapp},
+{name:{ru:"Заметки",en:"Notes"},func:notes_activity}
 ]
 bpl=4
 synth = app.CreateSynth();
 xcm = app.ListFolder( folder );
-//laystatus=null
+ntf=[]
+months_=[
+{ru:"Январь",en:"January"},
+{ru:"Февраль",en:"February"},
+{ru:"Март",en:"March"},
+{ru:"Апрель",en:"April"},
+{ru:"Май",en:"May"},
+{ru:"Июнь",en:"June"},
+{ru:"Июль",en:"July"},
+{ru:"Август",en:"August"},
+{ru:"Сентябрь",en:"September"},
+{ru:"Октябрь",en:"October"},
+{ru:"Ноябрь",en:"November"},
+{ru:"Декабрь",en:"December"}
+]
 if( debug==true ) {
  bootanimationtime = 2000
 }else{
@@ -52,11 +81,6 @@ if( debug==true ) {
 }
  fullscreen = app.LoadBoolean("fs",false)
 if( fullscreen ) app.SetScreenMode( "Full" );
- soundonboot = [app.LoadBoolean("sob",false),app.SaveText("sobf","Snd/testbootsound.mp3")]
-settingslistmenu = [
-"Дебаг > "+(debug==true?"Вкл.":"Выкл"),
-"Другой звук запуска > "+(soundonboot[0]==true?"Вкл.":"Выкл")
-]
 }
 _setInterval =  setInterval;
 setInterval = function(callback,timer) {
@@ -96,15 +120,9 @@ laydrawer = app.CreateLayout( "Linear", "Vertical,fillxy" );
 app.LockDrawer( "left" );
 layboot = app.CreateLayout( "Linear", "Vertical,fillxy" );
 layboot.SetBackColor( "black" ); 
-bootsnd = app.CreateMediaPlayer();
-bootsnd.SetFile( soundonboot[1] )
 bootanim = app.CreateVideoView( 1.1,1 );
 bootanim.SetFile( "Vid/bootanimation.mp4" );
 bootanim.Play();
-if(soundonboot[0]==true) { 
-bootanim.SetVolume( 0,0 );
-setTimeout( "bootsnd.Play()",2000)
-}
 layboot.AddChild( bootanim );
 app.AddLayout( layboot );
 setTimeout(function() {
@@ -116,7 +134,8 @@ app.AddDrawer( laydrawer,"left",0.9,0.1 );
 //drawdrawer()
 },bootanimationtime)
 // КОНЕЦ
-
+folder="/sdcard/Rammer/"
+folder_exists = app.FolderExists( folder );
 if(folder_exists==false) {
 app.MakeFolder( folder );
 app.MakeFolder( folder+"/Music/" );
@@ -136,30 +155,19 @@ laymainbtns = app.CreateLayout( "linear", "Horizontal,fillxy,Bottom" );
 lay.SetBackground( background );
 
 layother = app.CreateLayout( "Linear", "Vertical" );
-buttonphone = app.CreateButton( "Телефон" );
+buttonphone = app.CreateButton( lang=="ru"?"Телефон":"Phone" );
 laymainbtns.AddChild( buttonphone );
-/*
-buttonsms = app.CreateButton( "СМС" );
-laymainbtns.AddChild( buttonsms );
-*/
-buttons = app.CreateButton( "Мелодии" );
+buttons = app.CreateButton( lang=="ru"?"Мелодии":"Melodies" );
 buttons.SetOnTouch( s_event );
 laymainbtns.AddChild( buttons );
-buttonbrowser = app.CreateButton( "Браузер" );
+buttonbrowser = app.CreateButton( lang=="ru"?"Браузер":"Browser" );
 laymainbtns.AddChild( buttonbrowser );
 
 buttonbrowser.SetOnLongTouch( function() {
-	laybrowser = null
-browser = null
-gobtn = null
-laybrowserhoz = null
-laybrowserhoz1 = null
-addressurlbar = null
-loadbar = null
-browsermemorytxt = null
-backbtnbrowser = null
+laybrowser, browser, gobtn, laybrowserhoz, laybrowserhoz1 = null
+addressurlbar, browsermemorytxt, backbtnbrowser = null
 urldata = null
-rammer_message("RAM браузера очищен")
+rammer_message(lang=="ru"?"RAM браузера очищен":"Browser's RAM is cleared")
 });
 
 // НАЧИНАЕТСЯ СТАТУС БАР
@@ -192,34 +200,50 @@ laystatus.SetBackColor( "#123456" );
 laydrawer.SetBackColor( "#556677" );
 laybtnsdraw1.SetBackColor( "#cc55aa" );
 }
+if(lang=="ru") {
 infobtn = app.CreateButton( "[fa-info]  О системе", null, null, "FontAwesome" );
+}else{
+infobtn = app.CreateButton( "[fa-info]  About system", null, null, "FontAwesome" );
+}
 infobtn.SetOnTouch( showinfo );
 laybtnsdraw.AddChild( infobtn );
 laydrawer.AddChild( laybtnsdraw );
 laydrawer.AddChild( laybtnsdraw1 );
 laydrawer.AddChild( laybtnsdraw2 );
-
+if(lang=="ru") {
 Appsbtn = app.CreateButton( "Приложения" );
+}else{
+Appsbtn = app.CreateButton( "Apps" );
+}
 Appsbtn.SetOnTouch( showApps );
 laybtnsdraw.AddChild( Appsbtn );
-
+if(lang=="ru") {
 lockscreenbtn = app.CreateButton( "Заблокировать экран" );
+}else{
+lockscreenbtn = app.CreateButton( "Lock screen" );
+}
 lockscreenbtn.SetOnTouch( screenlock );
 lockscreenbtn.SetOnLongTouch( function() {
 passwd = prompt("Пароль")
 screenlock(passwd)
 });
 laybtnsdraw1.AddChild( lockscreenbtn );
-
+if(lang=="ru") {
 settingsbtn = app.CreateButton( "Настройки" );
+}else{
+settingsbtn = app.CreateButton( "Settings" );
+}
 settingsbtn.SetOnTouch( settings_activity );
 laybtnsdraw1.AddChild( settingsbtn );
 
 procmanbtn = app.CreateButton( "ProcMan" );
 procmanbtn.SetOnTouch( procman_activity );
 laybtnsdraw.AddChild( procmanbtn );
-
+if(lang=="ru") {
 reloadvarsbtn = app.CreateButton( "Перезагрузка" );
+}else{
+reloadvarsbtn = app.CreateButton( "Reboot" );
+}
 reloadvarsbtn.SetEnabled( true );
 reloadvarsbtn.SetOnTouch(function() { 
 // ПЕРЕЗАГРУЗКА И ОЧИСТКА ПЕРЕМЕННЫХ
@@ -229,7 +253,7 @@ version, codename, buildnumber, funnyphrase, isbeta, background_default = null
 background, phonenumber, defaulturl, debug, daysofweek = null
 folder_exists, tmp_data, app_data, notification = null 
 repeat_music, sh_rad, sh_dy, melodies, xcm, bootanimationtime = null
-fullscreen, mpslast, soundonboot, settingslistmenu = null
+fullscreen, mpslast, settingslistmenu, listmenu = null
 init_vars() 
 OnStart()
 });
@@ -252,6 +276,8 @@ laybtnsdraw2.AddChild( fsbtn );
 laydrawer.SetBackColor( "gray" );
 laydrawer.Animate( "FlipFromTop" );
 app.AddLayout( laydrawer );
+
+
 close = app.CreateText( "[fa-arrow-up]",null,null,"fontawesome");
 close.SetOnTouch( function() {
 laydrawer.RemoveChild( laystatus );
@@ -289,7 +315,7 @@ txttime.SetTextShadow( sh_rad,sh_dy,sh_dy,"black" );
 layother.AddChild( txttime );
 
 	txtdate = app.CreateText( "" );
-txtdate.SetTextSize( 28 );
+txtdate.SetTextSize( 18 );
 txtdate.SetTextShadow( sh_rad,sh_dy,sh_dy,"black" );
 layother.AddChild( txtdate );
 
@@ -338,13 +364,17 @@ mpupdater = setInterval(updatemps,1000)
 layother1hoz.AddChild( textmps );
 }
 
-for(i=0;i<n.length;i++) {
+for(i=0;i<el.length;i++) {
 if(i%bpl==0) {
 layiconshoriz= app.CreateLayout( "Linear", "Horizontal" );
 layother.AddChild( layiconshoriz );
 }
-icon = app.CreateButton( n[i].name )
-icon.SetOnTouch( n[i].func );
+if(lang=="ru") {
+icon = app.CreateButton( el[i].name.ru )
+}else{
+icon = app.CreateButton( el[i].name.en )
+}
+icon.SetOnTouch( el[i].func );
 layiconshoriz.AddChild( icon );
 }
 
@@ -390,8 +420,12 @@ textmps.SetText(window.performance.memory.totalJSHeapSize);
 }
 
 // addnotiftobar("Img/rammer.png",function() {},"Rammer","Hello, world!!!");
+function notify(title,text)
+{
+	rammer_message(title+"\n"+text);
+}
 
-function addnotiftobar(icon, ontouch, title, text, sound)
+function addnotiftobar(title, text, icon, ontouch, sound)
 {
 _notifyimg = app.CreateImage( icon, 0.045 )
 _notifyimg.SetMargins( 0.01, 0, 0, 0 );
@@ -401,7 +435,9 @@ _notifyimg.text=text
 layotherothbar.AddChild( _notifyimg );
 notifs.push(_notifyimg);
 notifs[notifs.length-1].SetOnTouchDown( function() {
+if(typeof(ontouch)!="null") {
 ontouch()
+}
 notifs[notifs.length-1].Animate( "ZoominExit" );
 layotherothbar.RemoveChild( notifs[notifs.length-1] );
 notifs.pop()
@@ -415,6 +451,7 @@ notifSound.SetFile( "Snd/notification.mp3" );
 notifSound.SetOnReady( function() {
 notifSound.Play( );
 } );
+showntf(title,text,icon)
 }
 
 function music_play_popup(file) {
@@ -475,9 +512,12 @@ tmp_data.year = year
 tmp_data.battery_percent = Math.ceil(app.GetBatteryLevel() * 100)
 tmp_data.battery_charging = app.GetChargeType();
 txttime.SetText( hours+":"+tmp_data.minutes );
-txtdate.SetText( day+"/"+month+"/"+year+" "+daysofweek[ time.getUTCDay() ] );
+if(lang=="ru") {
+txtdate.SetText( daysofweek[ time.getUTCDay() ].ru+", "+day+" "+months_[tmp_data.month-1].ru+" "+year );
+}else{
+txtdate.SetText( daysofweek[ time.getUTCDay() ].en+", "+day+" of "+months_[tmp_data.month-1].en+" "+year );
+}
 txtnotif.SetText( notification );
-
 if( tmp_data.battery_charging!="None" ) {
 if(tmp_data.battery_percent<=25) {
 txtbattery.SetText( "[fa-battery-1][fa-bolt] "+tmp_data.battery_percent + "%" )
@@ -584,105 +624,6 @@ rammer_dialog.Hide();
 },timer)
 }
 
-
-function drawdrawer()
-{
-laystatus = app.CreateLayout( "Linear", "Vertical" );
-laydrawer.AddChild( laystatus );
-laybtnsdraw = app.CreateLayout( "Linear", "Horizontal" );
-laybtnsdraw1 = app.CreateLayout( "Linear", "Horizontal" );
-laybtnsdraw2 = app.CreateLayout( "Linear", "Horizontal" );
-if(debug==true) {
-laystatus.SetBackColor( "#123456" );
-laydrawer.SetBackColor( "#556677" );
-laybtnsdraw1.SetBackColor( "#cc55aa" );
-}
-infobtn = app.CreateButton( "[fa-info]  О системе", null, null, "FontAwesome" );
-infobtn.SetOnTouch( showinfo );
-laybtnsdraw.AddChild( infobtn );
-laydrawer.AddChild( laybtnsdraw );
-laydrawer.AddChild( laybtnsdraw1 );
-laydrawer.AddChild( laybtnsdraw2 );
-laynotifs_scroller = app.CreateScroller( 1,0.7 );
-laynotifs_scroller_lay = app.CreateLayout( "Linear", "Vertical" );
-laynotifs_scroller.AddChild( laynotifs_scroller_lay );
-laydrawer.AddChild( laynotifs_scroller );
-
-Appsbtn = app.CreateButton( "Приложения" );
-Appsbtn.SetOnTouch( showApps );
-laybtnsdraw.AddChild( Appsbtn );
-
-lockscreenbtn = app.CreateButton( "Заблокировать экран" );
-lockscreenbtn.SetOnTouch( screenlock );
-lockscreenbtn.SetOnLongTouch( function() {
-passwd = prompt("Пароль")
-screenlock(passwd)
-});
-laybtnsdraw1.AddChild( lockscreenbtn );
-
-settingsbtn = app.CreateButton( "Настройки" );
-settingsbtn.SetOnTouch( settings_activity );
-laybtnsdraw1.AddChild( settingsbtn );
-
-procmanbtn = app.CreateButton( "ProcMan" );
-procmanbtn.SetOnTouch( procman_activity );
-laybtnsdraw.AddChild( procmanbtn );
-
-reloadvarsbtn = app.CreateButton( "Перезагрузка" );
-reloadvarsbtn.SetEnabled( true );
-reloadvarsbtn.SetOnTouch(function() { 
-// ПЕРЕЗАГРУЗКА И ОЧИСТКА ПЕРЕМЕННЫХ
-shutdown()
-
-version, codename, buildnumber, funnyphrase, isbeta, background_default = null
-background, phonenumber, defaulturl, debug, daysofweek = null
-folder_exists, tmp_data, app_data, notification = null 
-repeat_music, sh_rad, sh_dy, melodies, xcm, bootanimationtime = null
-fullscreen, mpslast, soundonboot, settingslistmenu = null
-init_vars() 
-OnStart()
-});
-reloadvarsbtn.SetOnLongTouch( function() {
-shutdown_animation()
-app.CloseDrawer( "left" );
-app.LockDrawer( "left" );
-shutdown()
-});
-laybtnsdraw2.AddChild( reloadvarsbtn );
-
-fsbtn = app.CreateToggle( "Полноэкранный" );
-fsbtn.SetOnTouch( function(g) {
-fullscreen = g
-app.SaveBoolean( "fs",g );
-if( fullscreen ){ app.SetScreenMode( "Full" ) }else{ app.SetScreenMode( "Normal" ) }
-});
-fsbtn.SetChecked( fullscreen );
-laybtnsdraw2.AddChild( fsbtn );
-//laynotifs_scroller.SetBackColor( "#cc22cc" );
-for(i=0;i<2;i++) {
-laynotif_drw = app.CreateLayout( "Linear", "Vertical" );
-laynotif_drw.SetSize( 0.85 );
-laynotif_drw_hoz_tit = app.CreateLayout( "Linear", "HLeft" );
-laynotif_drw_hoz_txt = app.CreateLayout( "Linear", "HLeft" );
-laynotif_drw_hoz_txt.SetBackColor( "#cc22cc" );
-laynotif_drw_hoz_txt.SetSize( 0.85 );
-laynotif_drw.SetCornerRadius( 1 );
-laynotif_drw.SetBackColor( "#999966" );
-laynotif_drw_image = app.CreateImage( "Img/rammer.png", 0.07 );
-laynotif_drw_txt = app.CreateText( "Hello,world!!!" );
-laynotif_drw_title = app.CreateText( " Rammer".toUpperCase() );
-laynotif_drw_title.SetTextSize(16)
-laynotif_drw.SetMargins( 0.01, 0.01, 0.01, 0.01 );
-laynotif_drw.AddChild( laynotif_drw_hoz_tit );
-laynotif_drw.AddChild( laynotif_drw_hoz_txt );
-laynotif_drw_hoz_tit.AddChild( laynotif_drw_image );
-laynotif_drw_hoz_tit.AddChild( laynotif_drw_title );
-laynotif_drw_hoz_txt.AddChild( laynotif_drw_txt );
-laynotifs_scroller_lay.AddChild( laynotif_drw );
-}
-}
-
-
 function AddButton( lay, name )
 {
 	btn = app.CreateButton( name, 0.2, 0.1, "Alum" );
@@ -710,7 +651,7 @@ delete lay;
 	clear_interval_if_exists( tmp_data.musictimeint );
 } );
 }
-// A4GAMNO
+
 function procman_activity()
 {
 layprocman = app.CreateLayout( "Linear", "Vertical,fillxy" );
@@ -748,7 +689,11 @@ layshutdown.SetBackground( "Img/shutdown_background.jpg" );
 laytextshut = app.CreateLayout( "Linear", "Horizontal,center" );
 shutimage = app.CreateImage( "Misc/shutdown.gif", 0.05 );
 //shutimage.SetMargins( 0, 0.01, 0, 0.01 );
+if(lang=="ru") {
 shuttxt = app.CreateText( " Выключение" );
+}else{
+shuttxt = app.CreateText( " Shutting down..." );
+}
 shuttxt.SetTextSize( 22 );
 shuttxt.SetTextColor( "white" );
 laytextshut.AddChild( shutimage );
@@ -779,6 +724,32 @@ browser = null /* Браузер, ты никто! */
 }
 catch(e) {}
 } );
+}
+
+function showntf(title, text, icon)
+{
+layntf = app.CreateLayout( "Linear", "Horizontal,Top,Left" );
+layntf.chck = false
+layntf.SetSize( 1, null);
+layntf_img = app.CreateImage( icon, 0.05 );
+layntf_img.SetMargins( 0.025, 0.005, 0.025, 0.005 );
+layntf_txt = app.CreateText( title+": "+text,null,null,"Multiline" );
+layntf_txt.SetMargins( 0, 0.005, 0, 0.005 );
+layntf.SetBackColor( "gray" );
+ntf.push(layntf);
+setTimeout(function() {
+try{
+if(ntf[ntf.length-1].chck == false) {
+app.RemoveLayout( ntf[ntf.length-1] );
+ntf.pop()
+}
+}
+catch(e) {}
+},2500);
+ntf[ntf.length-1].AddChild( layntf_img );
+ntf[ntf.length-1].AddChild( layntf_txt );
+ntf[ntf.length-1].Animate( "BounceTop" );
+	app.AddLayout( ntf[ntf.length-1] );
 }
 
 function phone()
@@ -910,8 +881,12 @@ browser.LoadUrl(defaulturl)
 browser.LoadUrl(url)
 }
 browser.SetOnTouch( function() {
+try{
 urldata = browser.GetUrl()
 addressurlbar.SetText( urldata );
+}
+catch(e) {
+}
 });
 app.AddLayout( laybrowser );
 /*
@@ -930,7 +905,7 @@ addclosebtninfo(layinfo)
 // КОД ИНФОРМАЦИИ О СИСТЕМЕ >> 1
 logo = app.CreateImage( "Img/rammer.png", 0.15 );
 logo.SetOnTouchDown( function() {
-if(tmp_data.day=="17" & tmp_data.month=="12") {
+if(tmp_data.day==17 & tmp_data.month==12) {
 soundPlayer1.Stop();
 soundPlayer1.SetFile( "Snd/n64.mp3" );
 soundPlayer1.SetOnReady( function(){ soundPlayer1.Play() } );
@@ -1089,15 +1064,17 @@ function seek_music(e)
 audioPlayer.SeekTo( e );
 }
 
+function readdir(dir)
+{
+return app.ListFolder( dir );
+}
+
 // ЭТОТ КУСОК КОДА НУЖДАЕТСЯ В ПОЧИНКЕ
 function files_activity()
 {
-curfold = folder
-folder = "/sdcard/Rammer"
-xcm = app.ListFolder( folder );
 layfiles = app.CreateLayout( "Linear", "Vertical,fillxy" );
 layfiles.SetBackColor( "gray" );
-fileslist = app.CreateList( xcm ,null, 0.7 );
+fileslist = app.CreateList( readdir("/"+getpth(dir)) ,null, 0.7 );
 fileslist.SetOnTouch(chfolder)
 //fileslist.SetOnLongTouch(file_operations)
 addclosebtnfiles(layfiles)
@@ -1108,58 +1085,31 @@ txtpath = app.CreateText( "" );
 layfiles.AddChild( txtpath );
 layfiles.AddChild( backbtnfiles );
 app.AddLayout( layfiles );
-txtpath.SetText( folder );
-/*
-	lst = app.CreateList( xcm );
-lst.SetOnTouch( chfolder );
-btnback = app.CreateButton( "Back" );
-btnback.SetOnTouch( function() {
-dir="/sdcard/Rammer"
-xcm = app.ListFolder( dir );
-lst.SetList( xcm );
-});
-lay.AddChild( btnback );
-*/
-
+txtpath.SetText( "/"+getpth(dir) );
 }
 
 function chfolder(fold)
 {
-/*
-	dir+="/"+ev
-xcm = app.ListFolder( dir );
-lst.SetList( xcm );
-}
-*/
-if( app.IsFolder( folder+"/"+fold ) ) {
-folder+="/"+fold
-tmp_data.fold = fold
-xcm = app.ListFolder( folder );
-fileslist.SetList(xcm)
+dir.push(fold)
+if( app.IsFolder("/"+getpth(dir)) ) {
+xcm = readdir("/"+getpth(dir))
+fileslist.SetList( xcm );
 }else{
-
-/*if( app.IsFolder( xcm ) ) {
-
-}else{
-*/
 rejpg = new RegExp("\b*jpg");
-if(rejpg.test(curfold+"/"+fold)) {
-photo_activity(curfold+"/Pictures/"+fold)
+if(rejpg.test("/"+getpth(dir))) {
+photo_activity("/"+getpth(dir))
 }
 remp3 = new RegExp("\b*mp3");
-if(remp3.test(curfold+"/"+fold)) {
-music_play_popup(fold);
-//rammer_message("Аудио проигрывается: "+fold)
-//choosemusicfiles(curfold+"/Music/"+fold);
+if(remp3.test("/"+getpth(dir))) {
+music_play_popup("/"+getpth(dir));
 }
 remp4 = new RegExp("\b*mp4")
-if(remp4.test(curfold+"/"+fold)) {
-// rammer_message("Открываю видео")
-video_activity(curfold+"/Video/"+fold)
-// video_activity.otherfuncs()
+if(remp4.test("/"+getpth(dir))) {
+video_activity("/"+getpth(dir))
 }
+dir.pop()
 }
-txtpath.SetText( folder );
+txtpath.SetText( "/"+getpth(dir));
 }
 
 function addclosebtnfiles(lay)
@@ -1168,17 +1118,26 @@ function addclosebtnfiles(lay)
   lay.AddChild(closebtn)
   closebtn.SetOnTouch( function() {
 app.RemoveLayout( lay );
-folder="/sdcard/Rammer"
+//dir=dirf
 delete lay;
 } );
 }
 
 function back_files()
 {
-folder="/sdcard/Rammer"
-	fileslist.SetList(app.ListFolder(folder))
-txtpath.SetText( folder );
-//txtpath.SetText( xcm );
+if(getpth(dir)!=getpth(dirf)) {
+	dir.pop()
+xcm = readdir("/"+getpth(dir))
+fileslist.SetList( xcm );
+}
+txtpath.SetText( "/"+getpth(dir) );
+}
+
+function getpth(dirp)
+{
+	if(dirp.length!=0){
+return dirp.join("/")+"/"
+}
 }
 
 function showApps()
@@ -1190,25 +1149,12 @@ layApps.SetBackColor( "gray" );
 layAppsbtn1 = app.CreateLayout( "Linear", "Horizontal" );
 layApps.AddChild( layAppsbtn1 );
 layApps.AddChild( layAppsbtn );
-// КОД >>2
-/*
-addappbtn = app.CreateButton( "Добавить" );
-addappbtn.SetOnTouch( addapp_event );
-layAppsbtn.AddChild( addappbtn );
-*/
 changewallpapersbtn = app.CreateButton( "Сменить обои" );
 changewallpapersbtn.SetOnTouch( changewallpapers );
 layAppsbtn.AddChild( changewallpapersbtn );
 dsmsbtn = app.CreateButton( "DSMS" );
 dsmsbtn.SetOnTouch( dsms_activity );
 layAppsbtn.AddChild( dsmsbtn )
-/*
-marketbtn = app.CreateButton( "appz" );
-marketbtn.SetOnTouch( market_activity );
-layAppsbtn.AddChild( marketbtn );
-*/
-//КОНЕЦ <<2
-
 tmp_data.Apps = app.ListFolder( "/sdcard/Rammer/Apps/", null, null, "Folders");
 Appslist = app.CreateList( tmp_data.Apps );
 Appslist.SetOnTouch( runapp );
@@ -1239,11 +1185,15 @@ camerascreen = app.CreateCameraView( 1, 0.9 );
 camerascreen.SetOnReady( function() { 
 camerascreen.StartPreview();
 });
-snapcamerabtn = app.CreateButton( "Сфотать" );
+snapcamerabtn = app.CreateButton( "Съемка" );
 snapcamerabtn.SetOnTouch( snapcamera );
 flashlightbtn = app.CreateToggle( "Вспышка" );
 flashlightbtn.SetOnTouch( function(g){
 camerascreen.SetFlash( g );
+});
+recordcamerabtn = app.CreateButton( "Видеозапись" );
+recordcamerabtn.SetOnTouch( function() {
+camerascreen.Record( "/sdcard/Rammer/Video/VID_"+tmp_data.year+"_"+tmp_data.month+"_"+tmp_data.hours+"_"+tmp_data.minutes+"_"+tmp_data.seconds);
 });
 laycamera.AddChild( camerascreen );
 laycamera.AddChild( laycamerahoz );
@@ -1268,7 +1218,11 @@ delete laycamera
 
 function snapcamera()
 {
-	camerascreen.TakePicture( folder+"/Pictures/PIC_"+tmp_data.year+"-"+tmp_data.month+"-"+tmp_data.seconds+"_"+tmp_data.hours+"-"+tmp_data.minutes+"-"+tmp_data.seconds+".jpg" );
+	camerascreen.TakePicture( folder+"/Pictures/PIC_"+tmp_data.year+"-"+tmp_data.month+"-"+"_"+tmp_data.hours+"-"+tmp_data.minutes+"-"+tmp_data.seconds+".jpg" );
+}
+
+function getalldates(d) {
+return tmp_data.year+d+tmp_
 }
 
 function photo_activity(file)
@@ -1433,7 +1387,7 @@ imgw3.SetOnTouch( chwtow3 );
 imgw4 = app.CreateImage( "Img/wallpaper4.jpg",0.2,0.2);
 imgw4.SetOnTouch( chwtow4 );
 imgwny = app.CreateImage( "Img/wallpaper4.jpg",0.2,0.2);
-imgny.SetOnTouch( chwtowny );
+imgwny.SetOnTouch( chwtowny );
 laychwallpapers.AddChild( laychwallpapershoz );
 laychwallpapershoz.AddChild( imgw1 );
 laychwallpapershoz.AddChild( imgw2 );
@@ -1535,6 +1489,14 @@ btnvideostop.SetOnTouch( function() {
 videoPlayer.Stop();
 clearInterval(tmp_data.svt)
 });
+btnp10 = app.CreateButton( "-10" );
+btnp10.SetOnTouch( function() {
+videoPlayer.SeekTo( videoPlayer.GetPosition()-10 );
+} );
+btnm10 = app.CreateButton( "+10" );
+btnm10.SetOnTouch( function (){
+videoPlayer.SeekTo( videoPlayer.GetPosition()+10 );
+});
 layvideohoza = app.CreateLayout( "Linear", "Horizontal" );
 seekvideotime = app.CreateSeekBar( 0.8 )
 video_activity.otherfuncs = function() {
@@ -1557,16 +1519,17 @@ layvideohoza.AddChild( seektxt );
 layvideohoza.AddChild( seekvideotime );
 layvideohoza.AddChild( seektxt_1 );
  layvideo.AddChild( layvideohoza );
+layvideohoz.AddChild( btnp10 );
 layvideohoz.AddChild( btnvideoplay );
 layvideohoz.AddChild( btnvideopause );
 layvideohoz.AddChild( btnvideostop );
+layvideohoz.AddChild( btnm10 );
 layvideo.AddChild( videoPlayer );
 // КОНЕЦ << 4
 	closebtn = app.CreateButton( "Закрыть" );
   layvideo.AddChild(closebtn)
   closebtn.SetOnTouch( function() {
-app.RemoveLayout( lay );
-app.RemoveChild( layvideohoza );
+app.RemoveLayout( layvideo );
 app.RemoveLayout( layvideohoz );
 //clearInterval(lvskblive)
 } );
@@ -1911,34 +1874,37 @@ function settings_activity() {
 settingsbtn.SetEnabled( false );
 laysettings = app.CreateLayout( "Linear", "Vertical,fillxy" );
 laysettings.SetBackColor( "gray" );
+laysettings1 = app.CreateLayout( "Linear", "Horizontal" );
 
-settingslist = app.CreateList( settingslistmenu,1 ,null, "FontAwesome" );
-settingslist.SetOnTouch( function(choice) {
-if(choice.match("Дебаг >")=="Дебаг >") {
-if(debug==true){
- debug=false 
-app.SaveBoolean( "debug",false ) 
+dbgbtn = app.CreateToggle( "Дебаг" );
+dbgbtn.SetChecked( debug );
+dbgbtn.SetOnTouch( function(g) {
+if(debug==true) {
+debug = app.SaveBoolean( "debug",false );
+debug = false
 }else{
- debug=true
-app.SaveBoolean( "debug",true )
+debug = app.SaveBoolean( "debug",true );
+debug = true
 }
-}
+} );
+laysettings1.AddChild( dbgbtn );
 
-if(choice.match("Другой звук запуска >")=="Другой звук запуска >") {
-if(soundonboot[0]==true){
-soundonboot[0]=false 
-app.SaveBoolean( "sob",false ) 
+langbtn = app.CreateButton( "Language: "+lang );
+langbtn.SetOnTouch( function() {
+if(lang=="ru") {
+app.SaveText( "syslang","en" );
+lang="en"
+langbtn.SetText( "Language: "+lang );
 }else{
- soundonboot[0]=true
-app.SaveBoolean( "sob",true )
+app.SaveText( "syslang","ru" );
+lang="ru"
+langbtn.SetText( "Language: "+lang );
 }
-}
-settingslistmenu = ["Дебаг > "+(debug==true?"Вкл.":"Выкл"),"Другой звук запуска > "+(soundonboot[0]==true?"Вкл.":"Выкл")]
-settingslist.SetList( settingslistmenu );
+alert("Please click on Reboot button");
+} );
+laysettings1.AddChild( langbtn );
 
-});
-laysettings.AddChild( settingslist );
-
+laysettings.AddChild( laysettings1 );
 addclosebtnsettings(laysettings)
 app.AddLayout( laysettings );
 }
@@ -2012,6 +1978,7 @@ app.RemoveLayout( layterm );
 } );
 term_btn.SetOnTouch( function() {
 cmd = term_txte_1.GetText();
+if(cmd!="") {
 term_txte_1.SetText( "" );
 term_txte.SetText(term_txte.GetText()+"> "+cmd+"\n");
 if( app.FileExists( "/sdcard/Rammer/Sys/Cmd/"+cmd+".js" ) ) {
@@ -2020,8 +1987,11 @@ eval("/sdcard/Rammer/Sys/Cmd/"+cmd+".js");
 try{
 this.result = eval(cmd);
 term_txte.SetText(term_txte.GetText()+this.result+"\n");
+this.rpl = cmd.split(" ");
+cmd_data=this.rpl
 }catch(e) {
 term_txte.SetText(term_txte.GetText()+"shell: unknown function or other error"+e+"\n");
+}
 }
 }
 });
