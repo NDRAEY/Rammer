@@ -1,0 +1,14 @@
+{
+	"style":{
+		"wireless":{
+			"show":true
+		},
+		"battery":{
+			"show":true,
+			"percents":true
+		}
+	},
+	"sounds":{
+		"notifications":"Snd/notification.mp3"
+	}
+}
