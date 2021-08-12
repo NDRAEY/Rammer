@@ -10,5 +10,6 @@
 	},
 	"sounds":{
 		"notifications":"Snd/notification.mp3"
-	}
+	},
+	"fileassoc":[]
 }

@@ -275,7 +275,7 @@ get_p() { return this.p }
 class RammerUtility {
 constructor(){}
 AddChildMul(lay,arr) {
-for(i=0;i<arr.length;i++) { lay.AddChild( arr[i] ) }
+for(let i=0;i<arr.length;i++) { lay.AddChild( arr[i] ) }
 }
 squarexy(w) {
 return [w,w/(app.GetDisplayHeight()/app.GetDisplayWidth())]
@@ -356,7 +356,9 @@ class RammerVideo {
 		this.laybctr.SetBackAlpha(0.4)
 		this.txttime1 = app.CreateText("00:00")
 		this.txttime2 = app.CreateText("00:00")
-		this.bar = app.CreateSeekBar(w-(0.15*2),h-(h/6))
+		this.txttime1.SetMargins( 0,0.01,0.02,0 )
+		this.txttime2.SetMargins( 0.02,0.01,0,0 )
+		this.bar = app.CreateSeekBar(w-(0.15*2),0.05)
 		this.bar.SetRange(1)
 		this.bar.video=this.video
 		this.bar.SetOnChange((val)=>{
@@ -470,6 +472,30 @@ this.list.SetList(app.ListFolder( "/"+this.dir.join("/") ))
 }
 }
 
+class RammerSevenSegment {
+constructor(lay,dgcount) {
+this.lta = lay
+this.is = false
+this.color = "white"
+this.lay = app.CreateLayout( "Frame" )
+this.text = app.CreateText( "" )
+this.text.SetTextColor( this.color )
+this.text.SetFontFile("Misc/digital-7.ttf")
+this.lay.AddChild(this.text)
+}
+show() {
+if(!this.is){this.lta.AddChild(this.lay); this.is=true}
+}
+hide() {
+if(this.is){this.lta.AddChild(this.lay); this.is=false}
+}
+setText(txt) {
+this.text.SetText(txt)
+}
+setSize(sz) {
+this.text.SetTextSize(sz)
+}
+}
 
 class RammerAudioPlayer {
 constructor(lay,w){
@@ -658,40 +684,4 @@ this.z = z
 this.eha.DrawImage( app.CreateImage( this.image ),this.x,this.y,this.z,this.z/(app.GetScreenHeight()/app.GetScreenWidth()) )
 this.eha.Update()
 }
-}
-
-
-class RammerLoadingScreen{
-constructor(lay,text,size){
-this.x = 0
-this._lay=lay
-this.text=text
-this.lay = app.CreateLayout( "Linear", "VCenter,fillxy" )
-this.lay.SetBackColor("black")
-this.lay.SetBackAlpha(0.6)
-this.txt = app.CreateText( this.text,null,null,"Multiline" )
-this.txt.SetTextSize(size==null?32:size)
-this.lay.AddChild(this.txt)
-this.img = app.CreateImage(null,0.9,0.07)
-this.img.SetAutoUpdate(false)
-this.lay.AddChild(this.img)
-}
-animstep(){
-this.img.Clear()
-this.img.SetPaintColor("gray")
-this.img.DrawRectangle(0,0,1,1)
-this.img.SetPaintColor("white")
-this.img.DrawRectangle(this.x,0,this.x+0.2,1)
-this.img.Update()
-this.x+=0.03
-if(this.x>=1){this.x=-0.2}
-}
-animate(){
-this.po = setInterval(()=>{this.animstep()},1000/30)
-}
-stopanim(){
-clearInterval(this.po)
-}
-show(){ this._lay.Animate("FadeIn");this._lay.AddChild(this.lay);this.img.Animate("SlideFromBottom") }
-hide(){ this._lay.RemoveChild(this.lay) }
 }
