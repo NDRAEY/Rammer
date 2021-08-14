@@ -8,7 +8,7 @@ class RammerApp {
    constructor(txt) {
         this.lay = app.CreateLayout("Linear", "Vertical,fillxy,Top");
         this._lay = app.CreateLayout( "Linear", "Vertical,fillxy,Bottom,TouchThrough" );
-        this.lay.SetSize( 1,scw>sch?0.94:0.96 )
+        this.lay.SetSize( 1,RammerScreenWidth>RammerScreenHeight?0.94:0.96 )
         this.state="unused"
         this.ifadded = false
         this.txt_prev = textapp.GetText()
@@ -64,7 +64,7 @@ class RammerApp {
 
 class RammerCloseButton_CrossLayout {
 constructor(laytoadd,laytoclose) {
-this.w = scw>sch?0.06:0.12
+this.w = RammerScreenWidth>RammerScreenHeight?0.06:0.12
 this.lta = laytoadd
 this.h = this.w / (app.GetDisplayHeight()/app.GetDisplayWidth())
 this.closebtn = app.CreateButton( "[fa-close]",this.w,this.h,"FontAwesome" );
@@ -96,7 +96,7 @@ raw() {
 
 class RammerCloseButton {
 constructor(laytoadd) {
-this.w = scw>sch?0.06:0.12
+this.w = RammerScreenWidth>RammerScreenHeight?0.06:0.12
 this.lta = laytoadd
 this.h = this.w / (app.GetDisplayHeight()/app.GetDisplayWidth())
 this.closebtn = app.CreateButton( "[fa-close]",this.w,this.h,"FontAwesome" );
@@ -601,7 +601,7 @@ this.lay.AddChild( this.eha )
 
 this.eha.SetPaintColor( "gray" )
 this.eha.DrawRectangle( 0,0,3-2,3-2 )
-this.eha.DrawImage( app.CreateImage( this.image ),0,0,1,1/(app.GetScreenHeight()/app.GetScreenWidth()) )
+this.eha.DrawImage( app.CreateImage( this.image ),0,0,1,1/(app.GetRammerScreenHeight()/app.GetScreenWidth()) )
 this.eha.Update()
 
 this.textz = app.CreateText( "Zoom" )
@@ -681,7 +681,20 @@ this.eha.DrawRectangle( 0,0,3-2,3-2 )
 this.x = x
 this.y = y
 this.z = z
-this.eha.DrawImage( app.CreateImage( this.image ),this.x,this.y,this.z,this.z/(app.GetScreenHeight()/app.GetScreenWidth()) )
+this.eha.DrawImage( app.CreateImage( this.image ),this.x,this.y,this.z,this.z/(app.GetRammerScreenHeight()/app.GetScreenWidth()) )
 this.eha.Update()
 }
+}
+
+function RammerSystem_GetRemoteVersion(){
+  'use strict'
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET","https://raw.githubusercontent.com/AndreyTheHacker/Rammer/master/rammer.js",false)
+  xhr.send()
+  
+  let req = xhr.responseText
+  req = req.slice(req.indexOf("const version = "),req.length)
+  req = req.slice(req.indexOf('"')+1,req.length)
+  req = req.slice(0,req.indexOf('"'))
+  return (req==""?null:req)
 }

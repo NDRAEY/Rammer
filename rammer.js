@@ -7,13 +7,13 @@
 // Чтобы сменить язык, зайдите в Настройки -> Язык (Language)
 // To switch language, go to Settings -> Language
 app.SetDebugEnabled( false )
-const version = "4.08"
+const version = "4.08.1"
 var codename, buildnumber, funnyphrase, isbeta, background_default = null
 var background, defaulturl, RammerDaysOfWeek = null
 var tmp_data, app_data, lang, notification = null
 var repeat_music, RammerChargeTrackerMgr, show_bp, bootanimationtime, RammerOrientTrackerMgr__ = null
-var scw = app.GetScreenWidth(  );
-var sch = app.GetScreenHeight(  )
+var RammerScreenWidth = app.GetScreenWidth(  );
+var RammerScreenHeight = app.GetScreenHeight(  )
 var mainscr, procs, notifs,  synth, cmd_data = null;
 app.LoadScript( "builtins.js" );
 // ^^^ после обновления, выдавалась ошибка, так что был поставлен 'use strict' // after update rammer crashes wirh error, i put 'use strict' to a start of builtins.js
@@ -67,11 +67,9 @@ el = [
 {name:{ru:"Обои",en:"Wallpapers"},func:changewallpapers,custom:false,icon:"Sys/Icon/wallpaper.png"},
 {name:{ru:"Текстовый редактор",en:"TextPad"},func:textpad,custom:false,icon:"Sys/Icon/textpad.png"}
 ]
-bpl=sch>scw?4:7
+bpl=RammerScreenHeight>RammerScreenWidth?4:7
 extappslist = app.ListFolder( "/"+ToFolder(Array.prototype.concat(dirf,['Apps'] ) ))
 synth = app.CreateSynth();
-//xcm = app.ListFolder( folder ); // needed by files
-//ntf=[]
 RammerMonths=[
 {ru:"Январь",en:"January"},
 {ru:"Февраль",en:"February"},
@@ -184,7 +182,7 @@ lay.SetBackground( background );
 layother = app.CreateLayout( "Linear", "Vertical" );
 
 buttonphone = app.CreateLayout( "Linear", "Vertical" )
-buttonphone_i = app.CreateImage( "Sys/Icon/phone.png", sch>scw?0.16:0.08, sch>scw?(0.16/(sch/scw)):(0.08/(sch/scw)) )
+buttonphone_i = app.CreateImage( "Sys/Icon/phone.png", RammerScreenHeight>RammerScreenWidth?0.16:0.08, RammerScreenHeight>RammerScreenWidth?(0.16/(RammerScreenHeight/RammerScreenWidth)):(0.08/(RammerScreenHeight/RammerScreenWidth)) )
 buttonphone_t = app.CreateText( lang=="ru"?"Телефон":"Phone" );
 buttonphone.AddChild( buttonphone_i )
 buttonphone.AddChild( buttonphone_t )
@@ -192,7 +190,7 @@ buttonphone_i.SetOnTouchDown( phone )
 laymainbtns.AddChild( buttonphone );
 
 buttonbrowser = app.CreateLayout( "Linear", "Vertical" )
-buttonbrowser_i = app.CreateImage( "Sys/Icon/web.png", sch>scw?0.16:0.08, sch>scw?(0.16/(sch/scw)):(0.08/(sch/scw)))
+buttonbrowser_i = app.CreateImage( "Sys/Icon/web.png", RammerScreenHeight>RammerScreenWidth?0.16:0.08, RammerScreenHeight>RammerScreenWidth?(0.16/(RammerScreenHeight/RammerScreenWidth)):(0.08/(RammerScreenHeight/RammerScreenWidth)))
 buttonbrowser_t = app.CreateText( lang=="ru"?"Браузер":"Browser" );
 buttonbrowser.AddChild( buttonbrowser_i )
 buttonbrowser.AddChild( buttonbrowser_t )
@@ -252,7 +250,7 @@ txtdate.SetFontFile( "Misc/19809.otf" )
 
 txtnotif.SetTextSize( 24 );
 layother.AddChild( txtnotif );
-// symphony!
+
 layotherhoz = app.CreateLayout( "Linear", "Horizontal" );
 
 layother.AddChild( layotherhoz );
@@ -315,10 +313,10 @@ layiconshoriz= app.CreateLayout( "Linear", "Horizontal" );
 layapppicker.AddChild( layiconshoriz );
 }
 __lay__ = app.CreateLayout( "Linear", "Vertical" );
-__lay__.SetSize( sch>scw?0.2:0.1, sch>scw?0.28/(sch/scw):0.14/(sch/scw) )
-// sch>scw?0.16:0.08
-// sch>scw?0.16/(sch/scw):0.08/(sch/scw)
-icon = app.CreateImage( typeof(pa.icon)=="undefined"?null:pa.icon, sch>scw?0.16:0.08, sch>scw?0.16/(sch/scw):0.08/(sch/scw));
+__lay__.SetSize( RammerScreenHeight>RammerScreenWidth?0.2:0.1, RammerScreenHeight>RammerScreenWidth?0.28/(RammerScreenHeight/RammerScreenWidth):0.14/(RammerScreenHeight/RammerScreenWidth) )
+// RammerScreenHeight>RammerScreenWidth?0.16:0.08
+// RammerScreenHeight>RammerScreenWidth?0.16/(RammerScreenHeight/RammerScreenWidth):0.08/(RammerScreenHeight/RammerScreenWidth)
+icon = app.CreateImage( typeof(pa.icon)=="undefined"?null:pa.icon, RammerScreenHeight>RammerScreenWidth?0.16:0.08, RammerScreenHeight>RammerScreenWidth?0.16/(RammerScreenHeight/RammerScreenWidth):0.08/(RammerScreenHeight/RammerScreenWidth));
 icon.runnbl = pa.name
 text = app.CreateText( lang=="ru"?pa.name.ru:pa.name.en, null, null, "Multiline" )
 icon.SetOnTouchUp( pa.func );
@@ -338,17 +336,12 @@ eval( app.ReadFile( "/sdcard/Rammer/Mods/"+app.ListFolder( "/sdcard/Rammer/Mods/
 // END OF OnStart()
 }
 
-function notify_update()
-{
-	txtnotif.SetText( notification );
-}
-
 function RammerAppRunnerUglyFix()
 {
 	runapp(lang=="ru"?this.runnbl.ru:this.runnbl.en)
 }
 
-function notify(title,text)
+function RammerNotifyPopup(title,text)
 {
 	rammer_message(title+"\n"+text);
 }
@@ -379,10 +372,10 @@ notifSound.SetFile( rammer_config.sounds.notifications );
 notifSound.SetOnReady( function() {
 notifSound.Play();
 });
-showntf(title,text,icon,ontouch)
+RammerShowNotifyPopup(title,text,icon,ontouch)
 }
 
-function music_play_popup(file) {
+function RammerMusicPlayerPopup(file) {
 laympp = app.CreateLayout( "Linear", "VCenter,fillxy" );
 laympp1 = app.CreateLayout( "Linear", "VCenter" );
 laympp1.SetBackColor( "white" );
@@ -427,7 +420,7 @@ RammerTime = new Date()
 RammerDay = RammerTime.getDate()
 RammerMonth = RammerTime.getMonth()+1
 RammerYear = RammerTime.getFullYear()
-notify_update()
+txtnotif.SetText( notification );
 if(app.FileExists( "/sys/class/power_supply/battery/BatteryAverageCurrent")) {
   if(app.GetChargeType()!="None") {
   if(app.ReadFile( "/sys/class/power_supply/battery/BatteryAverageCurrent" )!="0") {
@@ -643,7 +636,7 @@ for(__=0;__<procs.length;__++){
 }
 }
 
-function showntf(title, text, icon, onclick)
+function RammerShowNotifyPopup(title, text, icon, onclick)
 {
 layntf = app.CreateLayout( "Linear", "Horizontal,Top,Left" );
 layntf.chck = false
@@ -1034,15 +1027,15 @@ photo_activity({},"/"+ToFile(dir))
 }
 remp3 = new RegExp("\b*mp3");
 if(remp3.test("/"+ToFile(dir))) {
-music_play_popup("/"+ToFile(dir));
+RammerMusicPlayerPopup("/"+ToFile(dir));
 }
 rewav = new RegExp("\b*wav");
 if(rewav.test("/"+ToFile(dir))) {
-music_play_popup("/"+ToFile(dir));
+RammerMusicPlayerPopup("/"+ToFile(dir));
 }
 rem4a = new RegExp("\b*m4a");
 if(rem4a.test("/"+ToFile(dir))) {
-music_play_popup("/"+ToFile(dir));
+RammerMusicPlayerPopup("/"+ToFile(dir));
 }
 remp4 = new RegExp("\b*mp4")
 if(remp4.test("/"+ToFile(dir))) {
@@ -1344,7 +1337,7 @@ btnownwp.SetOnTouch( function(){
 this.wp.setonfileselect(function(w){
 /*if(app.CreateImage(w).GetAbsHeight()-75>app.CreateImage(w).GetAbsWidth()) {
 this.img = app.CreateImage( null, 3-2,3-2 ) // because touchscreen is broken
-this.img.DrawImage(app.CreateImage( w ),-0.5,0,1.8,1.8/(sch/scw))
+this.img.DrawImage(app.CreateImage( w ),-0.5,0,1.8,1.8/(RammerScreenHeight/RammerScreenWidth))
 this.nw = "/sdcard/Rammer/Pictures/Wallpapers/WP-"+Math.floor(Math.random()*32768)
 this.img.Save(this.nw)
 app.SaveText( "background",this.nw );
