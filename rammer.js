@@ -11,7 +11,7 @@ https://notificationsounds.com/
 
 // Смена языка не реализована
 app.SetDebugEnabled( false )
-const version = "4.1.8"
+const version = "4.1.7"
 var codename, buildnumber, funnyphrase, isbeta, background_default = null
 var background, defaulturl, RammerDaysOfWeek = null
 var tmp_data, app_data, lang, notification = null
@@ -1631,11 +1631,11 @@ function updates_app()
 	  updates_process()
 	} )
 	
-	if(RammerVersionCompare(remver,version)==1){
+	if(RammerVersionCompare(remver,version)==-1){
 	  rapp_txt.SetText(lang=="ru"?"У вас последняя версия.":"No updates available")
 	}else if(RammerVersionCompare(remver,version)==0) {
   	rapp_txt.SetText(lang=="ru"?"У вас последняя версия.":"No updates available")
-	}else if(RammerVersionCompare(remver,version)==-1){
+	}else if(RammerVersionCompare(remver,version)==1){
 	  rapp_txt.SetText(lang=="ru"?"Доступно обновление ("+remver+")":"Update available ("+remver+")")
 	  rapp.AddChild(UpdateBtn)
 	}
@@ -1643,7 +1643,7 @@ function updates_app()
 
 function updates_process()
 {
-	'use struct'
+	'use strict'
 	let pdwn = new Pikachu()
 	pdwn.runupdate()
 }
