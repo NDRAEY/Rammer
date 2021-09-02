@@ -704,7 +704,7 @@ function RammerSystem_GetRemoteVersion(){
   req = req.slice(0,req.indexOf('"'))
   return (req==""?null:req)
 }
-
+/*
 function RammerSystem_GetRemoteCode(file) {
   'use strict'
   if(file==null){ return null }
@@ -715,7 +715,7 @@ function RammerSystem_GetRemoteCode(file) {
   let req = xhr.responseText
   return (req==""?null:req)
 }
-
+*/
 function RammerVersionCompare(v1, v2, options) {
     // It's not my work...
     var lexicographical = options && options.lexicographical,
@@ -797,4 +797,22 @@ function RammerText_IntRunner(txt,a,b,c,tml,tme,addit,cb)
 	  },tme)
 	 }
 	},tml)
+}
+
+class Pikachu {
+  constructor(){
+    this.dwn = app.CreateDownloader(  )
+  }
+  runupdate(){
+    this.dwn.Download( "https://github.com/AndreyTheHacker/Rammer/archive/master.zip",app.GetAppPath() )
+    this.dwn.SetOnError( function(e){
+       alert((lang=="ru"?"Ошибка: ":"Error: ")+e)
+    })
+   this.dwn.SetOnComplete( function(){
+     shutdown_animation()
+     shutdown()
+ 	  app.UnzipFile( app.GetAppPath()+"/master.zip","update" )
+     app.CopyFolder( app.GetAppPath()+"/update/Rammer-master/",app.GetAppPath() )
+   })
+  }
 }

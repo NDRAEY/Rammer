@@ -42,7 +42,7 @@ notification = ""
 isbeta = true
 tmp_data = {}
 app_data = {}
-// Anybody: "Ot needs to be optimized!"
+// From the future: "It needs to be optimized! I'll help-p you"
 rammer = {}
 rammer.appstack=[]
 RammerChargeTrackerMgr = app.GetChargeType()
@@ -285,7 +285,6 @@ shutdown()
 background, defaulturl  = null
 tmp_data, app_data, notification = null 
 listmenu = null
-
 OnStart()
 }
 })
@@ -354,7 +353,7 @@ eval( app.ReadFile( "/sdcard/Rammer/Mods/"+app.ListFolder( "/sdcard/Rammer/Mods/
 },bootanimationtime)
 }
 // END OF OnStart()
-setTimeout("RammerSystem_CheckUpdates()",bootanimationtime+10000)
+setTimeout("RammerSystem_Check()",bootanimationtime+10000)
 }
 
 function RammerAppRunnerUglyFix()
@@ -1614,10 +1613,22 @@ function updates_app()
 	rapp_txt.SetTextSize( 22 )
 	rapp.AddChild( rapp_txt )
 	rapp.show()
+		
+	let rapp_txtversrem = app.CreateText( "" )
+	rapp_txtversrem.SetTextSize( 20 )
+	
+	let rapp_txtversloc = app.CreateText( "" )
+	rapp_txtversloc.SetTextSize( 20 )
+	
+	rapp_txtversrem.SetText( (lang=="ru"?"Версия на сервере: ":"Remote version: ")+remver )
+	rapp_txtversloc.SetText( (lang=="ru"?"Локальная (текущая) версия: ":"Local version: ")+remver )
+	
+	rapp.AddChild(rapp_txtversrem)
+	rapp.AddChild(rapp_txtversloc)
 	
 	let UpdateBtn = app.CreateButton( lang=="ru"?"Обновить":"Install updates"  )
 	UpdateBtn.SetOnTouch( function(){
-	
+	  updates_process()
 	} )
 	
 	if(RammerVersionCompare(remver,version)==1){
@@ -1630,6 +1641,12 @@ function updates_app()
 	}
 }
 
+function updates_process()
+{
+	'use struct'
+	let pdwn = new Pikachu()
+	pdwn.runupdate()
+}
 
 function livevideoapp()
 {
