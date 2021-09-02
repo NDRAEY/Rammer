@@ -1,8 +1,8 @@
 <meta charset="utf-8"></meta>
-<h2>Welcome to Wygl!</h2>
-<h3><image src="wygl.png" width="64" height="54"></image> Wygl - The Rammer browser.</h3>
+<h2>Welcome to SurfIt!</h2>
+<h3><image src="surfit.png" width="84" height="74" id="logo"></image> SurfIt - The Rammer browser.</h3>
 
-<h3> Стартовая страница </h3>
+<h3> Start page. </h3>
 <div id="yandex">
 <img src="yandex.jpg" onclick="window.open('https://yandex.ru')" width="50" height="50"></img><b><span id="red">Y</span>andex</b>
 </div>
@@ -18,4 +18,10 @@
 	#red {
 		color:red
 	}
-	</style>
+</style>
+<script>
+	var dt = new Date()
+	if(dt.getMonth()==11) {
+ document.getElementById("logo").src = "surfit-pikachu.png"
+	}
+</script>

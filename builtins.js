@@ -8,7 +8,7 @@ class RammerApp {
    constructor(txt) {
         this.lay = app.CreateLayout("Linear", "Vertical,fillxy,Top");
         this._lay = app.CreateLayout( "Linear", "Vertical,fillxy,Bottom,TouchThrough" );
-        this.lay.SetSize( 1,RammerScreenWidth>RammerScreenHeight?0.94:0.96 )
+        this.lay.SetSize( 1,app.GetOrientation()=="Landscape"?0.945:0.97)
         this.state="unused"
         this.ifadded = false
         this.txt_prev = textapp.GetText()
@@ -25,8 +25,10 @@ class RammerApp {
       if(this.ifadded == false) {
          //this._lay.Animate("FadeIn",()=>{},100)
          app.AddLayout(this._lay);
-         //layotherstatusbar.Animate("FadeIn",()=>{},100)
          layotherstatusbar.SetBackColor( "gray" );
+         if(rammer.appstack.length<=1){
+         layotherothbar.AddChild(txttimeonbar,0)
+         }
          textapp.SetText(this.txt)
          this.ifadded = true
          this.state = "showed"
@@ -35,16 +37,20 @@ class RammerApp {
    close() {
       if(this.ifadded == true) {
          app.RemoveLayout(this._lay);
-         layotherstatusbar.SetBackAlpha( 0 )
          textapp.SetText(this.txt_prev)
          this.ifadded = false
          rammer.appstack.splice(this.nnus-2,1) // not working
          delete this
+         if(rammer.appstack.length==0){
+         layotherothbar.RemoveChild(txttimeonbar)
+         layotherstatusbar.SetBackAlpha( 0 )
+         }
       }
    }
    hide() {
       if(this.ifadded == true) {
          app.RemoveLayout(this._lay);
+         layotherothbar.RemoveChild(txttimeonbar)
          layotherstatusbar.SetBackAlpha( 0 )
          textapp.SetText(this.txt_prev)
          this.ifadded = false
@@ -96,7 +102,7 @@ raw() {
 
 class RammerCloseButton {
 constructor(laytoadd) {
-this.w = RammerScreenWidth>RammerScreenHeight?0.06:0.12
+this.w = app.GetOrientation()=="Landscape"?0.06:0.12
 this.lta = laytoadd
 this.h = this.w / (app.GetDisplayHeight()/app.GetDisplayWidth())
 this.closebtn = app.CreateButton( "[fa-close]",this.w,this.h,"FontAwesome" );
@@ -601,7 +607,7 @@ this.lay.AddChild( this.eha )
 
 this.eha.SetPaintColor( "gray" )
 this.eha.DrawRectangle( 0,0,3-2,3-2 )
-this.eha.DrawImage( app.CreateImage( this.image ),0,0,1,1/(app.GetRammerScreenHeight()/app.GetScreenWidth()) )
+this.eha.DrawImage( app.CreateImage( this.image ),0,0,1,1/(app.GetScreenHeight()/app.GetScreenWidth()) )
 this.eha.Update()
 
 this.textz = app.CreateText( "Zoom" )
@@ -681,7 +687,7 @@ this.eha.DrawRectangle( 0,0,3-2,3-2 )
 this.x = x
 this.y = y
 this.z = z
-this.eha.DrawImage( app.CreateImage( this.image ),this.x,this.y,this.z,this.z/(app.GetRammerScreenHeight()/app.GetScreenWidth()) )
+this.eha.DrawImage( app.CreateImage( this.image ),this.x,this.y,this.z,this.z/(app.GetScreenHeight()/app.GetScreenWidth()) )
 this.eha.Update()
 }
 }
@@ -697,4 +703,98 @@ function RammerSystem_GetRemoteVersion(){
   req = req.slice(req.indexOf('"')+1,req.length)
   req = req.slice(0,req.indexOf('"'))
   return (req==""?null:req)
+}
+
+function RammerSystem_GetRemoteCode(file) {
+  'use strict'
+  if(file==null){ return null }
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET","https://raw.githubusercontent.com/AndreyTheHacker/Rammer/master/"+file,false)
+  xhr.send()
+  
+  let req = xhr.responseText
+  return (req==""?null:req)
+}
+
+function RammerVersionCompare(v1, v2, options) {
+    // It's not my work...
+    var lexicographical = options && options.lexicographical,
+        zeroExtend = options && options.zeroExtend,
+        v1parts = v1.split('.'),
+        v2parts = v2.split('.');
+    function isValidPart(x) { return (lexicographical ? /^\d+[A-Za-z]*$/ : /^\d+$/).test(x); }
+    if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) { return NaN; }
+    if (zeroExtend) {
+        while (v1parts.length < v2parts.length) v1parts.push("0");
+        while (v2parts.length < v1parts.length) v2parts.push("0");
+    }
+    if (!lexicographical) {
+        v1parts = v1parts.map(Number);
+        v2parts = v2parts.map(Number);
+    }
+    for (var i = 0; i < v1parts.length; ++i) {
+        if (v2parts.length == i) { return 1; }
+
+        if (v1parts[i] == v2parts[i]) { continue; }
+        else if (v1parts[i] > v2parts[i]) { return 1; }
+        else { return -1; }
+    }
+    if (v1parts.length != v2parts.length) { return -1; }
+    return 0;
+    
+    // returns 1 if local version is latest
+    // returns 0 if versions are equal
+    // returns -1 if remote version is latest
+    // returns NaN if error
+}
+
+/*
+Update Algorithm:
+
+1. Create Downloader
+2. Set Error Trigger
+3. Set Complete Trigger
+4. Download
+4.1. Unzip downloaded file to temporal folder
+4.2. Copy contents from temporal foldrf to system folder
+
+let dwn = app.CreateDownloader( )
+
+dwn.SetOnError( function(e)
+alert(e)
+ } )
+ dwn.SetOnComplete( function(){
+ 	app.UnzipFile( app.GetAppPath()+"/master.zip","update" )
+	lst = app.ListFolder( app.GetAppPath()+"/update/Rammer-master/" );
+  app.CopyFolder( app.GetAppPath()+"/update/Rammer-master/",app.GetAppPath() )
+  alert("Okay!")
+})
+	dwn.Download( "https://github.com/AndreyTheHacker/Rammer/archive/master.zip",app.GetAppPath())
+*/
+
+function RammerText_IntRunner(txt,a,b,c,tml,tme,addit,cb)
+{
+	'use strict'
+	let aa = a
+	let bb = b
+	let cnt = aa
+	let itrvl = setInterval(function(){
+	  if(cnt<=bb/1.25) {
+	    cnt+=c
+	    txt.SetText( cnt+addit )
+	  }else{
+	  clearInterval(itrvl)
+  	let itr = setInterval(function(){
+  	  if(cnt<bb) {
+  	    cnt+=c
+  	    txt.SetText(cnt+addit)
+  	  }else{
+  	    clearInterval(itr)
+  	    if(typeof(cb)!="undefined"){
+  	      cb()
+  	    }
+  	  }
+	  },tme)
+	 }
+	},tml)
 }
