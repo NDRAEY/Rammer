@@ -82,10 +82,10 @@ RammerMonths=[
 function RammerSystem_ReloadEl()
 {
 	el = [
-{name:{ru:"Mzika",en:"Music"},func:music_activity,custom:false,icon:"Sys/Icon/music.png"}, /* Иконки есть!!! :) */
-{name:{ru:"Ankwart",en:"Files"},func:files_activity,custom:false,icon:"Sys/Icon/files.png"},
-{name:{ru:"Leok",en:"Photos"},func:photo_activity,custom:false,icon:"Sys/Icon/photos.png"},
-{name:{ru:"Cänvoleuan",en:"Camera"},func:camera_activity,custom:false,icon:"Sys/Icon/camera.png"},
+{name:{ru:"Музыка",en:"Music"},func:music_activity,custom:false,icon:"Sys/Icon/music.png"}, /* Иконки есть!!! :) */
+{name:{ru:"Файлы",en:"Files"},func:files_activity,custom:false,icon:"Sys/Icon/files.png"},
+{name:{ru:"Фото",en:"Photos"},func:photo_activity,custom:false,icon:"Sys/Icon/photos.png"},
+{name:{ru:"Камера",en:"Camera"},func:camera_activity,custom:false,icon:"Sys/Icon/camera.png"},
 {name:{ru:"IPTV",en:"IPTV"},func:livevideoapp,custom:false,icon:"Sys/Icon/iptv.png"},
 {name:{ru:"Заметки",en:"Notes"},func:notes_activity,custom:false,icon:"Sys/Icon/notes.png"},
 {name:{ru:"Калькулятор",en:"Calculator"},func:calc_activity,custom:false,icon:"Sys/Icon/calculator.png"},
