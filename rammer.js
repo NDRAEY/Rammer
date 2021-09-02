@@ -11,7 +11,7 @@ https://notificationsounds.com/
 
 // Смена языка не реализована
 app.SetDebugEnabled( false )
-const version = "4.1.8"
+const version = "4.1.9"
 var codename, buildnumber, funnyphrase, isbeta, background_default = null
 var background, defaulturl, RammerDaysOfWeek = null
 var tmp_data, app_data, lang, notification = null
@@ -23,7 +23,7 @@ var RammerChargeTrackerProg = null
 app.LoadScript( "builtins.js" );
 // ^^^ после обновления, выдавалась ошибка, так что был поставлен 'use strict' // after update rammer crashes wirh error, i put 'use strict' to a start of builtins.js
 function init_vars() {
-codename = "Butterfree"
+codename = "Abra"
 buildnumber = "Mainline" // Build Number turns into Version Stage
 // По JS дни начинаются с воскресенья // In JS days starts from Sunday
 RammerDaysOfWeek = [
@@ -82,10 +82,10 @@ RammerMonths=[
 function RammerSystem_ReloadEl()
 {
 	el = [
-{name:{ru:"Музыка",en:"Music"},func:music_activity,custom:false,icon:"Sys/Icon/music.png"}, /* Иконки есть!!! :) */
-{name:{ru:"Файлы",en:"Files"},func:files_activity,custom:false,icon:"Sys/Icon/files.png"},
-{name:{ru:"Фото",en:"Photos"},func:photo_activity,custom:false,icon:"Sys/Icon/photos.png"},
-{name:{ru:"Камера",en:"Camera"},func:camera_activity,custom:false,icon:"Sys/Icon/camera.png"},
+{name:{ru:"Mzika",en:"Music"},func:music_activity,custom:false,icon:"Sys/Icon/music.png"}, /* Иконки есть!!! :) */
+{name:{ru:"Ankwart",en:"Files"},func:files_activity,custom:false,icon:"Sys/Icon/files.png"},
+{name:{ru:"Leok",en:"Photos"},func:photo_activity,custom:false,icon:"Sys/Icon/photos.png"},
+{name:{ru:"Cänvoleuan",en:"Camera"},func:camera_activity,custom:false,icon:"Sys/Icon/camera.png"},
 {name:{ru:"IPTV",en:"IPTV"},func:livevideoapp,custom:false,icon:"Sys/Icon/iptv.png"},
 {name:{ru:"Заметки",en:"Notes"},func:notes_activity,custom:false,icon:"Sys/Icon/notes.png"},
 {name:{ru:"Калькулятор",en:"Calculator"},func:calc_activity,custom:false,icon:"Sys/Icon/calculator.png"},
@@ -353,7 +353,7 @@ eval( app.ReadFile( "/sdcard/Rammer/Mods/"+app.ListFolder( "/sdcard/Rammer/Mods/
 },bootanimationtime)
 }
 // END OF OnStart()
-setTimeout("RammerSystem_Check()",bootanimationtime+10000)
+setTimeout("RammerSystem_CheckUpdates()",bootanimationtime+10000)
 }
 
 function RammerAppRunnerUglyFix()

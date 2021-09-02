@@ -809,10 +809,13 @@ class Pikachu {
        alert((lang=="ru"?"Ошибка: ":"Error: ")+e)
     })
    this.dwn.SetOnComplete( function(){
-     shutdown_animation()
-     shutdown()
+     	app.DeleteFile( "config.json" )
+   	app.DeleteFile( "rammer.js" )
+ 	  app.DeleteFile( "builtins.js" )
  	  app.UnzipFile( app.GetAppPath()+"/master.zip","update" )
      app.CopyFolder( app.GetAppPath()+"/update/Rammer-master/",app.GetAppPath() )
+     shutdown_animation()
+     shutdown()
    })
   }
 }
