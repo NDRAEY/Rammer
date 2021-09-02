@@ -1621,7 +1621,7 @@ function updates_app()
 	rapp_txtversloc.SetTextSize( 20 )
 	
 	rapp_txtversrem.SetText( (lang=="ru"?"Версия на сервере: ":"Remote version: ")+remver )
-	rapp_txtversloc.SetText( (lang=="ru"?"Локальная (текущая) версия: ":"Local version: ")+remver )
+	rapp_txtversloc.SetText( (lang=="ru"?"Локальная (текущая) версия: ":"Local version: ")+version )
 	
 	rapp.AddChild(rapp_txtversrem)
 	rapp.AddChild(rapp_txtversloc)
@@ -1635,7 +1635,7 @@ function updates_app()
 	  rapp_txt.SetText(lang=="ru"?"У вас последняя версия.":"No updates available")
 	}else if(RammerVersionCompare(remver,version)==0) {
   	rapp_txt.SetText(lang=="ru"?"У вас последняя версия.":"No updates available")
-	}else{
+	}else if(RammerVersionCompare(remver,version)==-1){
 	  rapp_txt.SetText(lang=="ru"?"Доступно обновление ("+remver+")":"Update available ("+remver+")")
 	  rapp.AddChild(UpdateBtn)
 	}
