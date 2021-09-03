@@ -816,6 +816,61 @@ class Pikachu {
      app.CopyFolder( app.GetAppPath()+"/update/Rammer-master/",app.GetAppPath() )
      shutdown_animation()
      shutdown()
+     app.DeleteFile( app.GetAppPath()+"/master.zip" )
+     app.DeleteFolder( app.GetAppPath()+"/updates" )
+     alert("Updates is installed, restart Rammer!")
    })
+  }
+}
+
+class RammerNotification{
+  constructor(title,text,func,icon,sound) {
+    this.title = title
+    this.text = text
+    this.func = func
+    this.icon = icon
+    this.sound = sound
+    
+    //DESIGN
+  this.nk = app.CreateLayout( "Card","Vertical" )
+  this.nk.SetBackColor( "gray" )
+  this.nk.SetCornerRadius( 20 )
+  this.nk.SetSize( 0.98,0.16 )
+  this.nk.func = this.func
+  this.nk.SetOnTouchUp(function(){
+    app.RemoveLayout( this )
+    clearTimeout(this.nid)
+    if(this.func!="undefined"&&this.func!=null){this.func()}
+  })
+  
+  this.evlay = app.CreateLayout( "Linear", "Vertical,top,touchthrough" )
+  this.nk.AddChild( this.evlay )
+  
+  this.psn = app.CreateText( this.title+" | now",0.7,null,"Left,touchthrough" )
+  this.psn.SetMargins( 0.03,0.01,0,0 )
+  this.psn.SetTextSize( 13 )
+  this.evlay.AddChild( this.psn )
+  
+  this.polk = app.CreateLayout( "Linear", "Horizontal,touchthrough" )
+  this.polk.SetSize( 0.98, 0.12 )
+  
+  this.plimg = app.CreateImage( this.icon, 0.14 )
+  this.plimg.SetMargins( 20, 15, 0, 0, "px")
+  this.polk.AddChild( this.plimg )
+  
+  this.pltxt = app.CreateText( this.text, 0.8, 0.14,"Left,Multiline,touchthrough" )
+  this.pltxt.SetMargins( 0.03, 0.01 )
+  this.pltxt.SetTextSize( 17 )
+  this.polk.AddChild( this.pltxt )
+  
+  this.evlay.AddChild( this.polk )
+  }
+  trigger(){
+    this.nk.Animate("FlipFromTop",()=>{},300)
+    app.AddLayout( this.nk )
+    this.nk.nid = setTimeout(()=>{
+      this.nk.Animate( "Fadeout",()=>{},300 )
+      app.RemoveLayout( this.nk )
+    },3000)
   }
 }

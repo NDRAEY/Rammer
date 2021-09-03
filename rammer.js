@@ -11,7 +11,7 @@ https://notificationsounds.com/
 
 // Смена языка не реализована
 app.SetDebugEnabled( false )
-const version = "4.1.9"
+const version = "4.2.0"
 var codename, buildnumber, funnyphrase, isbeta, background_default = null
 var background, defaulturl, RammerDaysOfWeek = null
 var tmp_data, app_data, lang, notification = null
@@ -23,7 +23,7 @@ var RammerChargeTrackerProg = null
 app.LoadScript( "builtins.js" );
 // ^^^ после обновления, выдавалась ошибка, так что был поставлен 'use strict' // after update rammer crashes wirh error, i put 'use strict' to a start of builtins.js
 function init_vars() {
-codename = "Abra"
+codename = "Machop"
 buildnumber = "Mainline" // Build Number turns into Version Stage
 // По JS дни начинаются с воскресенья // In JS days starts from Sunday
 RammerDaysOfWeek = [
@@ -51,7 +51,7 @@ lang=app.LoadText( "syslang",(app.GetLanguage()=="русский"?"ru":"en"));
 rammer_def_config = {"style":{"wireless":{"show":true},"battery":{"show":true,"percents":true}},"sounds":{"notifications":"Snd/notification.mp3"}}
 rammer_config = app.FileExists( "config.json" )?JSON.parse(app.ReadFile( "config.json" )):rammer_def_config
 
-funnyphrase = lang=="ru"?"Когда-нибудь будет 4.2":"From TikTok: Russia ia the best AMERICAN state in Ukraine"
+funnyphrase = lang=="ru"?"Скоро сюда придёт кто-то и сломает систему заново.":"Nothing to see here"
 background_default = "/Sys/Img/GreenBack.jpg"
 background = app.LoadText( "background","/Sys/Img/GreenBack.jpg" )
 dir = ["sdcard","Rammer"]
@@ -336,7 +336,6 @@ icon.about = pa
 icon.SetOnLongTouch( RammerSystem_AppOperation )
 text = app.CreateText( lang=="ru"?pa.name.ru:pa.name.en, null, null, "Multiline" )
 icon.SetOnTouchUp( pa.func );
-//icon.SetOnLongTouch( function(){} )
 if(el[i].name.ru.length>16||el[i].name.en.length>16){text.SetText( text.GetText().slice(0,16)+"..." )}
 __lay__.AddChild( icon );
 __lay__.AddChild( text );
