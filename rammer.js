@@ -11,7 +11,7 @@ https://notificationsounds.com/
 
 // Смена языка не реализована
 app.SetDebugEnabled( false )
-const version = "4.2.0"
+const version = "4.2.1"
 var codename, buildnumber, funnyphrase, isbeta, background_default = null
 var background, defaulturl, RammerDaysOfWeek = null
 var tmp_data, app_data, lang, notification = null
@@ -78,7 +78,7 @@ RammerMonths=[
 {ru:"Декабрь",en:"December"}
 ]
 }
-
+// END INIT VARS
 function RammerSystem_ReloadEl()
 {
 	el = [
@@ -96,7 +96,7 @@ function RammerSystem_ReloadEl()
 ]
 }
 
-// END INIT VARS
+// END FINAL INIT VARS
 _setInterval =  setInterval;
 setInterval = function(callback,timer,name) {
 const handler = _setInterval(callback, timer);
@@ -194,7 +194,7 @@ lay.SetBackground( background );
 layother = app.CreateLayout( "Linear", "Vertical" );
 
 buttonphone = app.CreateLayout( "Linear", "Vertical" )
-buttonphone_i = app.CreateImage( "Sys/Icon/phone.png", RammerScreenHeight>RammerScreenWidth?0.16:0.08, RammerScreenHeight>RammerScreenWidth?(0.16/(RammerScreenHeight/RammerScreenWidth)):(0.08/(RammerScreenHeight/RammerScreenWidth)) )
+buttonphone_i = app.CreateImage( "Sys/Icon/phone.png", app.GetOrientation!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/(RammerScreenHeight/RammerScreenWidth)):(0.08/(RammerScreenHeight/RammerScreenWidth)) )
 buttonphone_t = app.CreateText( lang=="ru"?"Телефон":"Phone" );
 buttonphone.AddChild( buttonphone_i )
 buttonphone.AddChild( buttonphone_t )
@@ -202,7 +202,7 @@ buttonphone_i.SetOnTouchDown( phone )
 laymainbtns.AddChild( buttonphone );
 
 buttonbrowser = app.CreateLayout( "Linear", "Vertical" )
-buttonbrowser_i = app.CreateImage( "Sys/Icon/web.png", RammerScreenHeight>RammerScreenWidth?0.16:0.08, RammerScreenHeight>RammerScreenWidth?(0.16/(RammerScreenHeight/RammerScreenWidth)):(0.08/(RammerScreenHeight/RammerScreenWidth)))
+buttonbrowser_i = app.CreateImage( "Sys/Icon/web.png", app.GetOrientation!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/(RammerScreenHeight/RammerScreenWidth)):(0.08/(RammerScreenHeight/RammerScreenWidth)) )
 buttonbrowser_t = app.CreateText( lang=="ru"?"Браузер":"Browser" );
 buttonbrowser.AddChild( buttonbrowser_i )
 buttonbrowser.AddChild( buttonbrowser_t )
@@ -367,7 +367,9 @@ function RammerNotifyPopup(title,text)
 
 function RammerSystem_CheckUpdates()
 {
-//  RammerNotify("System","Update available!","Img/rammer.png",()=>{})
+ 'use strict'
+ //let notif_ = new RammerNotification()
+  //RammerNotify("System","Update available!","Img/rammer.png",()=>{})
 }
 
 function RammerSystem_ReloadDesktop()
@@ -383,7 +385,7 @@ elnew  =  {
 			ru:eu,
 			en:eu
 		},
-		func:RammerAppRunnerUglyFix, // it's a ugly fix
+		func:RammerAppRunnerUglyFix, // it's ugly fix
 		custom:true,
 		icon:app.FileExists( "/sdcard/Rammer/Apps/"+eu+"/icon.png")?"/sdcard/Rammer/Apps/"+eu+"/icon.png":"Sys/Icon/unknown.png"
 	}
@@ -523,7 +525,7 @@ if(RammerChargeTrackerMgr!=app.GetChargeType()){
         } )
         try{
         RammerChargeTrackerProg()
-        }catch(e){}
+        }catch(e){alert("Charger: Error")}
       }
   RammerChargeTrackerMgr = app.GetChargeType()
 }
@@ -547,7 +549,7 @@ layapppicker.SetSize( 0.6, 0.34 )
 for(i=0;i<rammer.appstack.length;i++){
   rammer.appstack[i].raw().SetSize(1,0.94)
 }
-RammerSystem_ReloadDesktop()
+//RammerSystem_ReloadDesktop()
 }else{
 try{
 layotherstatusbar.SetSize( 1,0.035 );
@@ -748,33 +750,6 @@ app.RemoveLayout( layshutdown );
 for(__=0;__<procs.length;__++){
   clearInterval(procs[__].handler)
 }
-}
-
-function RammerShowNotifyPopup(title, text, icon, onclick)
-{
-layntf = app.CreateLayout( "Linear", "Horizontal,Top,Left" );
-layntf.chck = false
-layntf.SetSize( 1, null);
-layntf.img = app.CreateImage( icon, 0.05 );
-layntf.img.SetMargins( 0.025, 0.005, 0.025, 0.005 );
-layntf.txt = app.CreateText( title+": "+text,null,null,"Multiline" );
-layntf.txt.SetOnTouch(onclick)
-layntf.txt.SetMargins( 0, 0.005, 0, 0.005 );
-layntf.SetBackColor( "gray" );
-(function(n){
-_D3e7b__6m = setTimeout(function() { // Just obfuscated
-try{
-if(n.chck == false) {
-app.RemoveLayout( n );
-}
-}
-catch(e) {}
-},2500);
-
-})(layntf);
-layntf.AddChild( layntf.img );
-layntf.AddChild( layntf.txt );
-	app.AddLayout( layntf );
 }
 
 function phone()
@@ -1666,6 +1641,7 @@ layvideo_vp.show()
 layvideo_url_go.SetOnTouch( function(){
   let url = layvideo_url.GetText()
   layvideo_vp.setfile(url)
+  layvideo_vp.play()
 })
 layvideo.show()
 }

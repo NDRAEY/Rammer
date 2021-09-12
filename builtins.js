@@ -254,6 +254,11 @@ this.p = 1
 this.img = app.CreateImage( null,this.w,this.h )
 this.img.SetAutoUpdate(false)
 }
+setsize(w,h) {
+  this.w = typeof(w)=="undefined"||w==null?this.w:w
+  this.h = typeof(h)=="undefined"||h==null?this.h:h
+  this.img.SetSize(this.w,this.h)
+}
 show() {
 this.img.Clear()
 this.img.SetPaintColor("gray")
@@ -799,6 +804,33 @@ function RammerText_IntRunner(txt,a,b,c,tml,tme,addit,cb)
 	},tml)
 }
 
+function Rammer_IntRunnerFunction(cbi,a,b,c,tml,tme,addit,cb)
+{
+	'use strict'
+	let aa = a
+	let bb = b
+	let cnt = aa
+	let itrvl = setInterval(function(){
+	  if(cnt<=bb/1.25) {
+	    cnt+=c
+	    cbi( cnt+addit )
+	  }else{
+	  clearInterval(itrvl)
+  	let itr = setInterval(function(){
+  	  if(cnt<bb) {
+  	    cnt+=c
+  	    cbi(cnt+addit)
+  	  }else{
+  	    clearInterval(itr)
+  	    if(typeof(cb)!="undefined"){
+  	      cb()
+  	    }
+  	  }
+	  },tme)
+	 }
+	},tml)
+}
+
 class Pikachu {
   constructor(){
     this.dwn = app.CreateDownloader(  )
@@ -824,16 +856,17 @@ class Pikachu {
 }
 
 class RammerNotification{
-  constructor(title,text,func,icon,sound) {
+  constructor(title,text,func,icon,sound,options) {
     this.title = title
     this.text = text
     this.func = func
     this.icon = icon
     this.sound = sound
+    this.options = options
     
     //DESIGN
   this.nk = app.CreateLayout( "Card","Vertical" )
-  this.nk.SetBackColor( "gray" )
+  this.nk.SetBackColor( "#4F4E4E" )
   this.nk.SetCornerRadius( 20 )
   this.nk.SetSize( 0.98,0.16 )
   this.nk.func = this.func
@@ -847,30 +880,229 @@ class RammerNotification{
   this.nk.AddChild( this.evlay )
   
   this.psn = app.CreateText( this.title+" | now",0.7,null,"Left,touchthrough" )
-  this.psn.SetMargins( 0.03,0.01,0,0 )
+  this.psn.SetMargins( -0.05,0.01,0,0 )
   this.psn.SetTextSize( 13 )
   this.evlay.AddChild( this.psn )
   
   this.polk = app.CreateLayout( "Linear", "Horizontal,touchthrough" )
   this.polk.SetSize( 0.98, 0.12 )
   
-  this.plimg = app.CreateImage( this.icon, 0.14 )
+  this.plimg = app.CreateImage( this.icon, 0.11 )
   this.plimg.SetMargins( 20, 15, 0, 0, "px")
   this.polk.AddChild( this.plimg )
   
-  this.pltxt = app.CreateText( this.text, 0.8, 0.14,"Left,Multiline,touchthrough" )
+  this.nlay = app.CreateLayout( "Linear", "Vertical" )
+  this.nlay.SetSize(0.8,0.12)
+  this.polk.AddChild( this.nlay )
+  
+  this.pltxt = app.CreateText( this.text, null, null, "Left,Multiline,touchthrough" )
   this.pltxt.SetMargins( 0.03, 0.01 )
   this.pltxt.SetTextSize( 17 )
-  this.polk.AddChild( this.pltxt )
+  if(!(options&&options.notxt)) {
+    this.nlay.AddChild( this.pltxt )
+  }
   
+  this.msc = app.CreateMediaPlayer()
+  this.msc.SetFile(typeof(this.sound)=="undefined"||this.sound==null?rammer_config.sounds.notifications:this.sound)
+  this.msc.SetOnReady(function() {
+    this.Play()
+  })
   this.evlay.AddChild( this.polk )
   }
+  
   trigger(){
     this.nk.Animate("FlipFromTop",()=>{},300)
     app.AddLayout( this.nk )
     this.nk.nid = setTimeout(()=>{
       this.nk.Animate( "Fadeout",()=>{},300 )
       app.RemoveLayout( this.nk )
+      if(this.options&&(typeof(this.options.ondisappear)=="function")){
+        this.options.ondisappear()
+      }
     },3000)
+  }
+  
+  raw() {
+    return this.nlay
+  }
+}
+
+function RammerIPTV_ParseM3U8(data)
+{
+	'use strict'
+	let total = []
+	let nlsp = data.split("\n")
+	let obj = {}
+	for(let i=0;i<nlsp.length;i++) {
+	  if(nlsp[i][0]=="#"){
+	    let dt = (nlsp[i].slice(1,7))
+	    if(dt=="EXTINF") {
+	      obj.name = nlsp[i]
+	    }else if(dt=="EXTGRP") {
+	      obj.group = nlsp[i]
+	    }
+	  }else{
+	    if(nlsp[i].indexOf("http")>-1) {
+	      obj.url = nlsp[i]
+	      total.push(obj)
+	    }
+	  }
+	}
+	return total
+}
+
+class RammerFlexMenu {
+  constructor(){
+    this.lay = app.CreateLayout( "Linear", "VCenter,Fillxy" )
+    this.lay.SetBackColor("#000000")
+    this.lay.SetBackAlpha(6/9)
+    this.lay.SetOnTouchDown(()=>{
+      this.close()
+    })
+    this.mlay = app.CreateLayout( "Card", "Vertical" )
+    this.mlay.SetCornerRadius(15)
+    this.mlay.SetBackColor("gray")
+    this.mlay.SetSize(0.95,0.5)
+    this.lay.AddChild(this.mlay)
+  }
+  show(){
+    app.AddLayout( this.lay )
+  }
+  raw(){
+    return this.mlay
+  }
+  close(){
+    app.RemoveLayout( this.lay )
+  }
+}
+
+
+class RammerVerticalSeparator{
+  constructor(lay){
+    this.lay = lay
+    this.color = "#000000"
+    this.img = app.CreateImage( null, 0.005, 1 )
+    this.img.SetPaintColor(this.color)
+    this.img.DrawRectangle(0,0,1,1)
+  }
+  setsize(w,h) {
+   if(w<=0.02) {
+     this.img.Clear()
+     this.img.SetSize(w,h)
+     this.img.SetPaintColor(this.color)
+     this.img.DrawRectangle(0,0,1,1)
+   }
+  }
+  setcolor(clr){
+     this.img.Clear()
+     this.color = clr
+     this.img.SetPaintColor(this.color)
+     this.img.DrawRectangle(0,0,1,1)
+  }
+  show(){
+    this.lay.AddChild(this.img)
+  }
+  hide(){
+    this.lay.RemoveChild(this.img)
+  }
+}
+ 
+class RammerHorizontalSeparator{
+  constructor(lay){
+    this.lay = lay
+    this.color = "#000000"
+    this.img = app.CreateImage( null, 1,0.005 )
+    this.img.SetPaintColor(this.color)
+    this.img.DrawRectangle(0,0,1,1)
+  }
+  setsize(w,h) {
+   if(h<=0.02) {
+     this.img.Clear()
+     this.img.SetSize(w,h)
+     this.img.SetPaintColor(this.color)
+     this.img.DrawRectangle(0,0,1,1)
+   }
+  }
+  setcolor(clr){
+     this.img.Clear()
+     this.color = clr
+     this.img.SetPaintColor(this.color)
+     this.img.DrawRectangle(0,0,1,1)
+  }
+  show(){
+    this.lay.AddChild(this.img)
+  }
+  hide(){
+    this.lay.RemoveChild(this.img)
+  }
+ }
+ 
+class RammerBatteryIcon {
+ constructor(lay,options) {
+  this.lay = lay
+  this.img = app.CreateImage( null, 0.7, 0.15 )
+  this.bt = app.GetBatteryLevel()*100
+  this.showpercents = (options&&options.showpercents)
+  this.update()
+ }
+ show(){
+  this.lay.AddChild( this.img )
+ }
+ hide(){
+  this.lay.RemoveChild( this.img )
+ }
+ update(){
+  this.bt = (app.GetBatteryLevel()*100).toFixed(0)
+  this.img.SetPaintStyle( "Line" )
+	this.img.SetLineWidth( 10 )
+	this.img.DrawRectangle( 0,0,0.95,1 )
+	this.img.SetPaintStyle( "Fill" )
+	this.img.DrawRectangle( 0.97,0.35,1,0.65 )
+	this.img.DrawRectangle( 0.03,0.055,0.92*(this.bt/100),0.95 )
+	if(this.showpercents){
+	  this.img.SetPaintColor("#797979")
+	  this.img.SetTextSize(42)
+	  this.img.DrawText(this.bt+"%",0.35,0.58)
+	}
+ }
+ raw(){
+   return this.img
+ }
+ setsize(w,h) {
+   this.img.SetSize(w,h)
+   this.update()
+ }
+}
+
+class RammerToggle{
+  constructor(lay){
+    this.lay = lay
+    this.imgs = ["Img/swon.png","Img/swoff.png"]
+    this.switched = false
+    this.ontouch=(e)=>{}
+    this.img = app.CreateImage( this.imgs[1], 0.2 )
+    this.initial = this.img.GetWidth()/this.img.GetHeight()
+    //alert((this.img.GetAbsWidth()/this.img.GetAbsHeight())+"=>"+(this.img.GetWidth()/this.img.GetHeight()))
+    this.img.SetOnTouchUp(()=>{this.toggle()})
+  }
+  show(){
+    this.lay.AddChild(this.img)
+  }
+  hide(){
+    this.lay.RemoveChild(this.img)
+  }
+  toggle(){
+    this.switched=!this.switched
+    this.img.SetImage( this.switched?this.imgs[0]:this.imgs[1] )
+    this.ontouch(this.switched)
+  }
+  setsize(w,h){
+    this.img.SetSize(w,h)
+  }
+  setsizenorm(s){
+    this.img.SetSize(s,s/(this.initial))
+  }
+  setontouch(func){
+    this.ontouch=func
   }
 }
