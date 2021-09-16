@@ -7,8 +7,9 @@
 class RammerApp {
    constructor(txt) {
         this.lay = app.CreateLayout("Linear", "Vertical,fillxy,Top");
-        this._lay = app.CreateLayout( "Linear", "Vertical,fillxy,Bottom,TouchThrough" );
-        this.lay.SetSize( 1,app.GetOrientation()=="Landscape"?0.945:0.97)
+        this._lay = app.CreateLayout( "Linear", "Vertical,fillxy,Top,TouchThrough" );
+        this.lay.SetMargins(0,0.03,0,0)
+        this.lay.SetSize( 1,app.GetOrientation()=="Landscape"?0.875:0.925)
         this.state="unused"
         this.ifadded = false
         this.txt_prev = textapp.GetText()
@@ -26,6 +27,7 @@ class RammerApp {
          //this._lay.Animate("FadeIn",()=>{},100)
          app.AddLayout(this._lay);
          layotherstatusbar.SetBackColor( "gray" );
+         laycontrols.SetBackColor( "gray" )
          if(rammer.appstack.length<=1){
          layotherothbar.AddChild(txttimeonbar,0)
          }
@@ -44,6 +46,7 @@ class RammerApp {
          if(rammer.appstack.length==0){
          layotherothbar.RemoveChild(txttimeonbar)
          layotherstatusbar.SetBackAlpha( 0 )
+         laycontrols.SetBackAlpha(0)
          }
       }
    }
@@ -70,7 +73,7 @@ class RammerApp {
 
 class RammerCloseButton_CrossLayout {
 constructor(laytoadd,laytoclose) {
-this.w = RammerScreenWidth>RammerScreenHeight?0.06:0.12
+this.w = app.GetOrientation()=="Lamdscape"?0.06:0.12
 this.lta = laytoadd
 this.h = this.w / (app.GetDisplayHeight()/app.GetDisplayWidth())
 this.closebtn = app.CreateButton( "[fa-close]",this.w,this.h,"FontAwesome" );
@@ -879,6 +882,12 @@ class RammerNotification{
   this.evlay = app.CreateLayout( "Linear", "Vertical,top,touchthrough" )
   this.nk.AddChild( this.evlay )
   
+  this.evlay.SetOnTouchUp(function(){
+    app.RemoveLayout( this )
+    clearTimeout(this.nid)
+    if(this.func!="undefined"&&this.func!=null){this.func()}
+  })
+  
   this.psn = app.CreateText( this.title+" | now",0.7,null,"Left,touchthrough" )
   this.psn.SetMargins( -0.05,0.01,0,0 )
   this.psn.SetTextSize( 13 )
@@ -887,13 +896,25 @@ class RammerNotification{
   this.polk = app.CreateLayout( "Linear", "Horizontal,touchthrough" )
   this.polk.SetSize( 0.98, 0.12 )
   
-  this.plimg = app.CreateImage( this.icon, 0.11 )
+  this.polk.SetOnTouchUp(function(){
+    app.RemoveLayout( this )
+    clearTimeout(this.nid)
+    if(this.func!="undefined"&&this.func!=null){this.func()}
+  })
+  
+  this.plimg = app.CreateImage( typeof this.icon!="undefined"?this.icon:"Img/rammer.png", 0.11 )
   this.plimg.SetMargins( 20, 15, 0, 0, "px")
   this.polk.AddChild( this.plimg )
   
   this.nlay = app.CreateLayout( "Linear", "Vertical" )
   this.nlay.SetSize(0.8,0.12)
   this.polk.AddChild( this.nlay )
+  
+  this.nlay.SetOnTouchUp(function(){
+    app.RemoveLayout( this )
+    clearTimeout(this.nid)
+    if(this.func!="undefined"&&this.func!=null){this.func()}
+  })
   
   this.pltxt = app.CreateText( this.text, null, null, "Left,Multiline,touchthrough" )
   this.pltxt.SetMargins( 0.03, 0.01 )

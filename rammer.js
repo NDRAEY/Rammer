@@ -11,7 +11,7 @@ https://notificationsounds.com/
 
 // Смена языка не реализована
 app.SetDebugEnabled( false )
-const version = "4.2.1"
+const version = "4.2.2"
 var codename, buildnumber, funnyphrase, isbeta, background_default = null
 var background, defaulturl, RammerDaysOfWeek = null
 var tmp_data, app_data, lang, notification = null
@@ -19,11 +19,11 @@ var repeat_music, RammerChargeTrackerMgr, show_bp, bootanimationtime, RammerOrie
 var RammerScreenWidth = app.GetScreenWidth(  );
 var RammerScreenHeight = app.GetScreenHeight(  )
 var mainscr, procs, notifs,  synth, cmd_data = null;
-var RammerChargeTrackerProg = null
+var RammerChargeTrackerProg, RammerDSScreenValue = null
 app.LoadScript( "builtins.js" );
 // ^^^ после обновления, выдавалась ошибка, так что был поставлен 'use strict' // after update rammer crashes wirh error, i put 'use strict' to a start of builtins.js
 function init_vars() {
-codename = "Machop"
+codename = "Machamp" // Nekit's idea coming soon
 buildnumber = "Mainline" // Build Number turns into Version Stage
 // По JS дни начинаются с воскресенья // In JS days starts from Sunday
 RammerDaysOfWeek = [
@@ -77,6 +77,7 @@ RammerMonths=[
 {ru:"Ноябрь",en:"November"},
 {ru:"Декабрь",en:"December"}
 ]
+RammerDSScreenValue = (RammerScreenHeight/RammerScreenWidth)
 }
 // END INIT VARS
 function RammerSystem_ReloadEl()
@@ -180,7 +181,7 @@ elnew  =  {
 			ru:eu,
 			en:eu
 		},
-		func:RammerAppRunnerUglyFix, // it's a ugly fix
+		func:RammerAppRunnerUglyFix, // it's a ugly fix // But it works!!! 
 		custom: true,
 		icon:app.FileExists( "/sdcard/Rammer/Apps/"+eu+"/icon.png")?"/sdcard/Rammer/Apps/"+eu+"/icon.png":"Sys/Icon/unknown.png"
 	}
@@ -188,13 +189,39 @@ elnew  =  {
 el.push(elnew)
 }
 
-laymainbtns = app.CreateLayout( "linear", "Horizontal,fillxy,Bottom" );
+laymainbtns = app.CreateLayout( "linear", "Horizontal,Bottom" );
+laymainbtns.SetSize( 1,0.27 )
 lay.SetBackground( background );
+
+laycontrols = app.CreateLayout( "Linear", "Horizontal" )
+laycontrols.SetSize(1,0.045)
+//laycontrols.SetBackColor( "gray" )
+
+//CONTROLS (RammerCloseButton is deprecated!)
+  laycontrols_back = app.CreateButton( "[fa-bars]",null,0.05,"FontAwesome" )
+  laycontrols_back.SetBackAlpha( 0 )
+  laycontrols_back.SetMargins( 0,-0.0055,0,0 )
+  laycontrols.AddChild( laycontrols_back )
+  
+  laycontrols_home = app.CreateButton( "[fa-circle]",null,0.05,"FontAwesome" )
+  laycontrols_home.SetBackAlpha( 0 )
+  laycontrols_home.SetMargins( 0.05,-0.0055,0,0 )
+  laycontrols.AddChild( laycontrols_home )
+  
+  laycontrols_home.SetOnTouch(function(){
+    for(i=0;i<rammer.appstack.length;i++){
+      if(rammer.appstack[i].txt==textapp.GetText()){
+        rammer.appstack[i].close()
+        break
+      }
+    }
+  })
+//END CONTROLS
 
 layother = app.CreateLayout( "Linear", "Vertical" );
 
 buttonphone = app.CreateLayout( "Linear", "Vertical" )
-buttonphone_i = app.CreateImage( "Sys/Icon/phone.png", app.GetOrientation!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/(RammerScreenHeight/RammerScreenWidth)):(0.08/(RammerScreenHeight/RammerScreenWidth)) )
+buttonphone_i = app.CreateImage( "Sys/Icon/phone.png", app.GetOrientation!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/RammerDSScreenValue):(0.08/RammerDSScreenValue) )
 buttonphone_t = app.CreateText( lang=="ru"?"Телефон":"Phone" );
 buttonphone.AddChild( buttonphone_i )
 buttonphone.AddChild( buttonphone_t )
@@ -202,7 +229,7 @@ buttonphone_i.SetOnTouchDown( phone )
 laymainbtns.AddChild( buttonphone );
 
 buttonbrowser = app.CreateLayout( "Linear", "Vertical" )
-buttonbrowser_i = app.CreateImage( "Sys/Icon/web.png", app.GetOrientation!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/(RammerScreenHeight/RammerScreenWidth)):(0.08/(RammerScreenHeight/RammerScreenWidth)) )
+buttonbrowser_i = app.CreateImage( "Sys/Icon/web.png", app.GetOrientation!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/RammerDSScreenValue):(0.08/RammerDSScreenValue) )
 buttonbrowser_t = app.CreateText( lang=="ru"?"Браузер":"Browser" );
 buttonbrowser.AddChild( buttonbrowser_i )
 buttonbrowser.AddChild( buttonbrowser_t )
@@ -251,9 +278,10 @@ buttonbrowser.SetOnTouch( browser_activity );
 
 lay.AddChild( layother );
 lay.AddChild( laymainbtns );
+lay.AddChild( laycontrols )
 
 txttime = app.CreateText( "" );
-txttime.SetTextSize( app.GetOrientation()=="Landscape"?30:38 );
+txttime.SetTextSize( app.GetOrientation()=="Landscape"?28:38 );
 layother.AddChild( txttime );
 txttime.SetFontFile( "Misc/19809.otf" )
 
@@ -272,7 +300,8 @@ layotherhoz = app.CreateLayout( "Linear", "Horizontal" );
 layother.AddChild( layotherhoz );
 layotherstatusbar.SetSize( 1,0.04 );
 layotherothbar.SetSize( 0.6,0.04 );
-layothermainbar.SetSize( 0.4, 0.04 );
+layothermainbar.SetSize( 0.4, 0.04 )
+
 txtrebootopts = app.CreateText( "[fa-repeat]", null, null, "FontAwesome" )
 txtrebootopts.SetOnTouchDown( ()=>{
 this.op = app.CreateListDialog( lang=="ru"?"Выключение":"Power off",[lang=="ru"?"Выключение":"Power off",lang=="ru"?"Перезагрузка":"Reboot"] )
@@ -282,6 +311,8 @@ shutdown_animation()
 shutdown()
 }else{
 shutdown()
+RammerScreenWidth = app.GetScreenWidth(  );
+RammerScreenHeight = app.GetScreenHeight(  )
 background, defaulturl  = null
 tmp_data, app_data, notification = null 
 listmenu = null
@@ -311,8 +342,9 @@ layotherwgt = app.CreateLayout( "Linear", "Horizontal" );
 check_wgts()
 layother.AddChild( layotherwgt );
 
+
 layapppicker = app.CreateLayout( "Linear", "Vertical,Left" )
-scrlapppicker = app.CreateScroller( 1,0.64 )
+scrlapppicker = app.CreateScroller( 1,0.5 )
 scrlapppicker.SetMargins( 0.06, 0, 0, 0 )
 scrlapppicker.AddChild( layapppicker )
 layother.AddChild( scrlapppicker )
@@ -351,8 +383,9 @@ eval( app.ReadFile( "/sdcard/Rammer/Mods/"+app.ListFolder( "/sdcard/Rammer/Mods/
 }catch(e) { alert("Error while loading module "+app.ListFolder( "/sdcard/Rammer/Mods/" )[i]+": "+e) }
 },bootanimationtime)
 }
+
 // END OF OnStart()
-setTimeout("RammerSystem_CheckUpdates()",bootanimationtime+10000)
+setTimeout("RammerSystem_CheckUpdates()",bootanimationtime+5000)
 }
 
 function RammerAppRunnerUglyFix()
@@ -368,8 +401,12 @@ function RammerNotifyPopup(title,text)
 function RammerSystem_CheckUpdates()
 {
  'use strict'
- //let notif_ = new RammerNotification()
-  //RammerNotify("System","Update available!","Img/rammer.png",()=>{})
+ 
+ //let notif_ = new RammerNotification("System","Update available!",()=>{},"Img/rammer.png",null)
+                                       /*                          ^                ^                               ^             ^                           ^
+                                             Title -------------|    Text ---|     Function ---------| Icon ---|           Sound ----|
+                                       */
+ //notif_.trigger()
 }
 
 function RammerSystem_ReloadDesktop()
@@ -420,35 +457,6 @@ layiconshoriz.AddChild( __lay__ );
 })(el[i]);
 }
 scrlapppicker.AddChild( layapppicker )
-}
-
-function RammerNotify(title, text, icon, ontouch, sound)
-{
-_notifyimg = app.CreateImage( icon, 0.045 )
-_notifyimg.SetMargins( 0.01, 0, 0, 0 );
-//_notifyimg.Animate( "ZoominEnter",null,1000 );
-_notifyimg.title=title
-_notifyimg.text=text
-_notifyimg.ontouch = ontouch
-layotherothbar.AddChild( _notifyimg );
-_notifyimg.SetOnTouchDown( function() {
-  if(typeof(this.ontouch)!="null") {
-  this.ontouch()
-  }
-  this.Animate( "ZoominExit" );
-layotherothbar.RemoveChild( this );
-})
-if(typeof(sound)!="undefined") {
-notifSound.Stop()
-notifSound.SetFile( sound );
-}else{
-notifSound.Stop()
-notifSound.SetFile( rammer_config.sounds.notifications );
-}
-notifSound.SetOnReady( function() {
-notifSound.Play();
-});
-RammerShowNotifyPopup(title,text,icon,ontouch)
 }
 
 function RammerMusicPlayerPopup(file) {
@@ -544,8 +552,14 @@ layotherstatusbar.SetSize( 1, 0.1 );
 layotherothbar.SetSize( 0.55,0.1 );
 layotherothbar.SetMargins( 0.02, 0, 0, 0 )
 layothermainbar.SetSize( 0.4, 0.1  )
-scrlapppicker.SetSize( 0.6, 0.34 )
-layapppicker.SetSize( 0.6, 0.34 )
+scrlapppicker.SetSize( 0.6, 0.29 )
+layapppicker.SetSize( 0.6, 0.29 )
+laymainbtns.SetSize( 1,0.255 )
+txttime.SetTextSize( 28 );
+laycontrols.SetSize(1,0.07 )
+RammerScreenWidth = app.GetScreenWidth(  );
+RammerScreenHeight = app.GetScreenHeight(  )
+RammerDSScreenValue = (RammerScreenHeight/RammerScreenWidth)
 for(i=0;i<rammer.appstack.length;i++){
   rammer.appstack[i].raw().SetSize(1,0.94)
 }
@@ -556,8 +570,14 @@ layotherstatusbar.SetSize( 1,0.035 );
 layotherothbar.SetSize( 0.6,0.035 );
 layotherothbar.SetMargins( 0, 0, 0, 0 )
 layothermainbar.SetSize( 0.4, 0.035 );
-scrlapppicker.SetSize( 1, 0.64 )
-layapppicker.SetSize( 1, 0.64 )
+scrlapppicker.SetSize( 1, 0.5 )
+layapppicker.SetSize( 1, 0.5 )
+txttime.SetTextSize( 38 );
+laycontrols.SetSize(1,0.04)
+laymainbtns.SetSize( 1,0.284 )
+RammerScreenWidth = app.GetScreenWidth(  );
+RammerScreenHeight = app.GetScreenHeight(  )
+RammerDSScreenValue = (RammerScreenHeight/RammerScreenWidth)
 for(i=0;i<rammer.appstack.length;i++){
   rammer.appstack[i].raw().SetSize(1,0.97)
 }
@@ -866,7 +886,7 @@ catch(e) {}
 function browser_activity(url)
 {
 	laybrowser = new RammerApp("Browser - SurfIt")
-browser = app.CreateWebView( 1,0.83, "IgnoreErrors" );
+browser = app.CreateWebView( 1,0.8, "IgnoreErrors" );
 gobtn = app.CreateButton( "[fa-arrow-up]",0.125,0.07,"FontAwesome" );
 laybrowserhoz = app.CreateLayout( "Linear", "Horizontal" );
 laybrowserhoz1 = app.CreateLayout( "Linear", "Horizontal" );
@@ -1852,7 +1872,9 @@ function runapp(name,params)
 app_data.assetslocation = "/sdcard/Rammer/Apps/"+name+"/"
 app_data.name = name
 try{
-app_data.params = params
+app_data.params = params||{}
+app_data.params.iscmd = false
+app_data.params.isrunnableapp = true
 eval( app.ReadFile( "/sdcard/Rammer/Apps/"+name+"/main.js" ))
 }
 catch(e) {
