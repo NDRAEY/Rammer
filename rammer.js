@@ -11,7 +11,7 @@ https://notificationsounds.com/
 
 // Смена языка не реализована
 app.SetDebugEnabled( false )
-const version = "4.2.2"
+const version = "4.2.6"
 var codename, buildnumber, funnyphrase, isbeta, background_default = null
 var background, defaulturl, RammerDaysOfWeek = null
 var tmp_data, app_data, lang, notification = null
@@ -23,7 +23,7 @@ var RammerChargeTrackerProg, RammerDSScreenValue = null
 app.LoadScript( "builtins.js" );
 // ^^^ после обновления, выдавалась ошибка, так что был поставлен 'use strict' // after update rammer crashes wirh error, i put 'use strict' to a start of builtins.js
 function init_vars() {
-codename = "Machamp" // Nekit's idea coming soon
+codename = "Machoke" // Nekit's idea coming soon
 buildnumber = "Mainline" // Build Number turns into Version Stage
 // По JS дни начинаются с воскресенья // In JS days starts from Sunday
 RammerDaysOfWeek = [
@@ -124,7 +124,7 @@ function OnStart()
 {
 init_vars()
 
-	lay = app.CreateLayout( "linear", "Vertical,fillxy,top" );
+lay = app.CreateLayout( "linear", "Vertical,fillxy,top" );
 
 if(bootcode) {
 layboot = app.CreateLayout( "Linear", "VCenter,fillxy" );
@@ -190,7 +190,7 @@ el.push(elnew)
 }
 
 laymainbtns = app.CreateLayout( "linear", "Horizontal,Bottom" );
-laymainbtns.SetSize( 1,0.27 )
+laymainbtns.SetSize( 1,0.2 )
 lay.SetBackground( background );
 
 laycontrols = app.CreateLayout( "Linear", "Horizontal" )
@@ -203,11 +203,27 @@ laycontrols.SetSize(1,0.045)
   laycontrols_back.SetMargins( 0,-0.0055,0,0 )
   laycontrols.AddChild( laycontrols_back )
   
+  laycontrols_back.SetOnTouch( function(){
+    'use strict'
+    //alert("Not implemented")
+    /*
+    laymainbtns.Animate("FadeOut")
+    let mkluio = [laymainbtns.GetWidth(),laymainbtns.GetHeight()]
+    let lpo = app.CreateLayout( "Linear", "VCenter,fillxy" )
+    let lpo_g = app.CreateText( "Hello, world" )
+    lay.AddChild( lpo, 0 )
+    lay.RemoveChild( layother )
+    lpo.AddChild( lpo_g )
+    lpo.SetSize( 1,0.6 )
+    laymainbtns.SetSize( 1,1-0.045-0.6 )
+    */
+  })
+  
   laycontrols_home = app.CreateButton( "[fa-circle]",null,0.05,"FontAwesome" )
   laycontrols_home.SetBackAlpha( 0 )
   laycontrols_home.SetMargins( 0.05,-0.0055,0,0 )
   laycontrols.AddChild( laycontrols_home )
-  
+  laycontrols_home.unk = null
   laycontrols_home.SetOnTouch(function(){
     for(i=0;i<rammer.appstack.length;i++){
       if(rammer.appstack[i].txt==textapp.GetText()){
@@ -221,7 +237,7 @@ laycontrols.SetSize(1,0.045)
 layother = app.CreateLayout( "Linear", "Vertical" );
 
 buttonphone = app.CreateLayout( "Linear", "Vertical" )
-buttonphone_i = app.CreateImage( "Sys/Icon/phone.png", app.GetOrientation!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/RammerDSScreenValue):(0.08/RammerDSScreenValue) )
+buttonphone_i = app.CreateImage( "Sys/Icon/phone.png", app.GetOrientation()!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/RammerDSScreenValue):(0.08/RammerDSScreenValue) )
 buttonphone_t = app.CreateText( lang=="ru"?"Телефон":"Phone" );
 buttonphone.AddChild( buttonphone_i )
 buttonphone.AddChild( buttonphone_t )
@@ -229,7 +245,7 @@ buttonphone_i.SetOnTouchDown( phone )
 laymainbtns.AddChild( buttonphone );
 
 buttonbrowser = app.CreateLayout( "Linear", "Vertical" )
-buttonbrowser_i = app.CreateImage( "Sys/Icon/web.png", app.GetOrientation!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/RammerDSScreenValue):(0.08/RammerDSScreenValue) )
+buttonbrowser_i = app.CreateImage( "Sys/Icon/web.png", app.GetOrientation()!="Landscape"?0.16:0.08, app.GetOrientation()!="Landscape"?(0.16/RammerDSScreenValue):(0.08/RammerDSScreenValue) )
 buttonbrowser_t = app.CreateText( lang=="ru"?"Браузер":"Browser" );
 buttonbrowser.AddChild( buttonbrowser_i )
 buttonbrowser.AddChild( buttonbrowser_t )
@@ -239,11 +255,9 @@ buttonphone.SetMargins( 0.03, 0.01, 0.01, 0.01 );
 buttonbrowser.SetMargins( 0.03, 0.01, 0.01, 0.01 );
 
 layotherstatusbar = app.CreateLayout( "linear", "horizontal,left" );
-layotherstatusbar.SetSize( 1,0.04 );
 layother.AddChild( layotherstatusbar );
 
 layotherothbar = app.CreateLayout( "linear", "horizontal,left" );
-layotherothbar.SetSize( 0.06,0.04  );
 layotherstatusbar.AddChild( layotherothbar );
 
 txttimeonbar = app.CreateText( "" )
@@ -298,9 +312,16 @@ layother.AddChild( txtnotif );
 layotherhoz = app.CreateLayout( "Linear", "Horizontal" );
 
 layother.AddChild( layotherhoz );
+
+if(app.GetOrientation()!="Landscape"){
 layotherstatusbar.SetSize( 1,0.04 );
 layotherothbar.SetSize( 0.6,0.04 );
 layothermainbar.SetSize( 0.4, 0.04 )
+}else{
+layotherothbar.SetSize( 0.55,0.1 );
+layotherothbar.SetMargins( 0.02, 0, 0, 0 )
+layothermainbar.SetSize( 0.4, 0.1  )
+}
 
 txtrebootopts = app.CreateText( "[fa-repeat]", null, null, "FontAwesome" )
 txtrebootopts.SetOnTouchDown( ()=>{
@@ -344,7 +365,7 @@ layother.AddChild( layotherwgt );
 
 
 layapppicker = app.CreateLayout( "Linear", "Vertical,Left" )
-scrlapppicker = app.CreateScroller( 1,0.5 )
+scrlapppicker = app.CreateScroller( 1,app.GetOrientation()=="Landscape"?0.2:0.57 )
 scrlapppicker.SetMargins( 0.06, 0, 0, 0 )
 scrlapppicker.AddChild( layapppicker )
 layother.AddChild( scrlapppicker )
@@ -352,7 +373,6 @@ layother.AddChild( scrlapppicker )
 calltime()
 calltime_int = setInterval(calltime,1000)
 
-// like a love song on radio!
 for(i=0;i<el.length;i++) {
 (function(pa){
 if(i%bpl==0) {
@@ -570,11 +590,11 @@ layotherstatusbar.SetSize( 1,0.035 );
 layotherothbar.SetSize( 0.6,0.035 );
 layotherothbar.SetMargins( 0, 0, 0, 0 )
 layothermainbar.SetSize( 0.4, 0.035 );
-scrlapppicker.SetSize( 1, 0.5 )
-layapppicker.SetSize( 1, 0.5 )
+scrlapppicker.SetSize( 1, 0.57 )
+layapppicker.SetSize( 1, 0.57  )
 txttime.SetTextSize( 38 );
-laycontrols.SetSize(1,0.04)
-laymainbtns.SetSize( 1,0.284 )
+laycontrols.SetSize(1,0.045 )
+laymainbtns.SetSize( 1,0.2 )
 RammerScreenWidth = app.GetScreenWidth(  );
 RammerScreenHeight = app.GetScreenHeight(  )
 RammerDSScreenValue = (RammerScreenHeight/RammerScreenWidth)
@@ -703,17 +723,7 @@ return false
 }
 }
 
-function addclosebtn(lay)
-{
-	closebtn = app.CreateButton( "Закрыть" );
-  lay.AddChild(closebtn)
-  closebtn.SetOnTouch( function() {
-app.RemoveLayout( lay );
-delete lay;
-	clear_interval_if_exists( tmp_data.musictimeint );
-} );
-}
-
+/*
 function procman_activity()
 {
 layprocman = app.CreateLayout( "Linear", "Vertical,fillxy" );
@@ -739,6 +749,7 @@ lst.SetList( lmt );
 app.AddLayout( layprocman );
 addclosebtn(layprocman);
 }
+*/
 
 function shutdown_animation(timer)
 {
@@ -886,7 +897,7 @@ catch(e) {}
 function browser_activity(url)
 {
 	laybrowser = new RammerApp("Browser - SurfIt")
-browser = app.CreateWebView( 1,0.8, "IgnoreErrors" );
+browser = app.CreateWebView( 1,0.85, "IgnoreErrors" );
 gobtn = app.CreateButton( "[fa-arrow-up]",0.125,0.07,"FontAwesome" );
 laybrowserhoz = app.CreateLayout( "Linear", "Horizontal" );
 laybrowserhoz1 = app.CreateLayout( "Linear", "Horizontal" );
@@ -914,8 +925,8 @@ laybrowserhoz.AddChild( backbtnbrowser );
 laybrowserhoz.AddChild( menubrowse );
 laybrowser.AddChild( browser );
 laybrowser.AddChild( laybrowserhoz1 );
-browser_closebtn = new RammerCloseButton(laybrowser)
-browser_closebtn.show()
+//browser_closebtn = new RammerCloseButton(laybrowser)
+//browser_closebtn.show()
 if(typeof(url)=="undefined"||typeof(url)=="object") {
 browser.LoadUrl(defaulturl)
 }else{
@@ -1776,41 +1787,47 @@ function RammerSystem_InstallPackageSimple(src)
 
 function terminal_act()
 {
-'use strict'
-let	layterm = new RammerApp(lang=="ru"?"Терминал":"Terminal")
-let term_txte = app.CreateTextEdit( "Welcome to Rammer "+version+" terminal!\n",1,0.8 );
-term_txte.SetBackColor( "black" );
-let laytermhoz = app.CreateLayout( "Linear", "Horizontal" );
-let term_txte_1 = app.CreateTextEdit( "",0.85,null );
-let term_btn = app.CreateButton( ">" );
-let term_clsb = new RammerCloseButton(layterm)
-term_clsb.show()
+T3dA = {}
+layterm = new RammerApp(lang=="ru"?"Терминал":"Terminal")
+newterm = app.CreateLayout( "Frame", "Vertical" )
+term_im = app.CreateImage( null, 1, 0.85 )
+term_im.SetPaintColor( "#000000" )
+nimg = app.CreateImage( app.LoadText( "RammerTerminalBG",null ),1,1 )
+term_im.DrawRectangle( 0,0,1,1 )
+term_im.DrawImage( nimg ,0,0,1,1 )
+// app.SaveText("RammerTerminalBG","/sdcard/Rammer/Pictures/terminal_bg.png")
+term_txte = app.CreateTextEdit( "Welcome to Rammer "+version+" terminal!\n",1,0.85 );
+newterm.AddChild( term_im )
+term_txte.SetBackAlpha( 0 )
+newterm.AddChild( term_txte )
+laytermhoz = app.CreateLayout( "Linear", "Horizontal" );
+term_txte_1 = app.CreateTextEdit( "",0.85,null );
+term_btn = app.CreateButton( ">" );
+//let term_clsb = new RammerCloseButton(layterm)
+//term_clsb.show()
 term_btn.SetOnTouch( function() {
-'use strict'
-let cmd = term_txte_1.GetText();
+cmd = term_txte_1.GetText();
 if(cmd!="") {
 term_txte_1.SetText( "" );
 term_txte.SetText(term_txte.GetText()+"> "+cmd+"\n");
 if( app.FileExists( "/sdcard/Rammer/Sys/Cmd/"+cmd+".js" ) ) {
-let __=app.ReadFile("/sdcard/Rammer/Sys/Cmd/"+cmd+".js") 
+__=app.ReadFile("/sdcard/Rammer/Sys/Cmd/"+cmd+".js") 
 eval(__) // ТУПО ВЫПОЛНИТЬ
 }else{
 try{
 this.result = eval(cmd);
 term_txte.SetText(term_txte.GetText()+this.result+"\n");
 this.rpl = cmd.split(" ");
-let cmd_data=this.rpl
-}catch(e) {
-term_txte.SetText(term_txte.GetText()+"shell: unknown function or other error\n"+e+"\n");
-}
+cmd_data=this.rpl
+}catch(e) { term_txte.SetText(term_txte.GetText()+"shell: unknown function or other error\n"+e+"\n"); }
 }
 }
 });
-layterm.AddChild( term_txte );
+layterm.AddChild( newterm );
 layterm.AddChild( laytermhoz );
 laytermhoz.AddChild( term_txte_1 );
 laytermhoz.AddChild( term_btn );
-layterm.AddChild( term_clsb );
+//layterm.AddChild( term_clsb );
 layterm.show()
 }
 
@@ -1819,9 +1836,9 @@ function textpad()
   'use strict';
   let appy = new RammerApp("TextPad")
 	let txtedit = app.CreateTextEdit( "",1,0.8 )
-  txtedit.SetBackColor( "#ffffff" )
-  txtedit.SetTextColor( "#000000" )
-  txtedit.SetCursorColor( "#000000" )
+  txtedit.SetBackColor( "#fafafa" )
+  txtedit.SetTextColor( "black" )
+  txtedit.SetCursorColor( "yellow" )
   appy.AddChild( txtedit )
 
 let path = ""

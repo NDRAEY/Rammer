@@ -8,8 +8,8 @@ class RammerApp {
    constructor(txt) {
         this.lay = app.CreateLayout("Linear", "Vertical,fillxy,Top");
         this._lay = app.CreateLayout( "Linear", "Vertical,fillxy,Top,TouchThrough" );
-        this.lay.SetMargins(0,0.03,0,0)
-        this.lay.SetSize( 1,app.GetOrientation()=="Landscape"?0.875:0.925)
+        this.lay.SetMargins(0,app.GetOrientation()=="Landscape"?0.07:0.03,0,0)
+        this.lay.SetSize( 1,app.GetOrientation()=="Landscape"?0.855:0.925)
         this.state="unused"
         this.ifadded = false
         this.txt_prev = textapp.GetText()
@@ -17,6 +17,7 @@ class RammerApp {
         this.lay.SetBackColor("gray");
         this._lay.AddChild(this.lay)
         this.nnus = rammer.appstack.push(this)
+        //this.old = laycontrols_home.unk
         //alert(this.nnus) //DEBUG
 	}
    raw() {
@@ -31,6 +32,7 @@ class RammerApp {
          if(rammer.appstack.length<=1){
          layotherothbar.AddChild(txttimeonbar,0)
          }
+         //laycontrols_home.unk = this
          textapp.SetText(this.txt)
          this.ifadded = true
          this.state = "showed"
@@ -41,7 +43,8 @@ class RammerApp {
          app.RemoveLayout(this._lay);
          textapp.SetText(this.txt_prev)
          this.ifadded = false
-         rammer.appstack.splice(this.nnus-2,1) // not working
+         //laycontrols_home.unk = this.old
+         rammer.appstack.splice(this.nnus-1,1) // not working
          delete this
          if(rammer.appstack.length==0){
          layotherothbar.RemoveChild(txttimeonbar)
@@ -55,6 +58,7 @@ class RammerApp {
          app.RemoveLayout(this._lay);
          layotherothbar.RemoveChild(txttimeonbar)
          layotherstatusbar.SetBackAlpha( 0 )
+         //laycontrols_home.unk = this.old
          textapp.SetText(this.txt_prev)
          this.ifadded = false
          this.state="hided"
@@ -73,7 +77,7 @@ class RammerApp {
 
 class RammerCloseButton_CrossLayout {
 constructor(laytoadd,laytoclose) {
-this.w = app.GetOrientation()=="Lamdscape"?0.06:0.12
+this.w = app.GetOrientation()=="Landscape"?0.06:0.12
 this.lta = laytoadd
 this.h = this.w / (app.GetDisplayHeight()/app.GetDisplayWidth())
 this.closebtn = app.CreateButton( "[fa-close]",this.w,this.h,"FontAwesome" );
