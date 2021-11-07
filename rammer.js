@@ -21,9 +21,8 @@ var RammerScreenHeight = app.GetScreenHeight(  )
 var mainscr, procs, notifs,  synth, cmd_data = null;
 var RammerChargeTrackerProg, RammerDSScreenValue = null
 app.LoadScript( "builtins.js" );
-// ^^^ после обновления, выдавалась ошибка, так что был поставлен 'use strict' // after update rammer crashes wirh error, i put 'use strict' to a start of builtins.js
 function init_vars() {
-codename = "Machoke" // Nekit's idea coming soon
+codename = "Charmeleon" // Nekit's idea coming soon
 buildnumber = "Mainline" // Build Number turns into Version Stage
 // По JS дни начинаются с воскресенья // In JS days starts from Sunday
 RammerDaysOfWeek = [
@@ -190,40 +189,70 @@ el.push(elnew)
 }
 
 laymainbtns = app.CreateLayout( "linear", "Horizontal,Bottom" );
-laymainbtns.SetSize( 1,0.2 )
+laymainbtns.SetSize( 1,0.19 )
 lay.SetBackground( background );
 
 laycontrols = app.CreateLayout( "Linear", "Horizontal" )
-laycontrols.SetSize(1,0.045)
+laycontrols.SetSize(1,0.059)
 //laycontrols.SetBackColor( "gray" )
 
 //CONTROLS (RammerCloseButton is deprecated!)
   laycontrols_back = app.CreateButton( "[fa-bars]",null,0.05,"FontAwesome" )
+  laycontrols_back.SetTextSize( 22 )
   laycontrols_back.SetBackAlpha( 0 )
-  laycontrols_back.SetMargins( 0,-0.0055,0,0 )
   laycontrols.AddChild( laycontrols_back )
   
   laycontrols_back.SetOnTouch( function(){
     'use strict'
-    //alert("Not implemented")
+    let reclay = app.CreateLayout( "Linear", "VCenter,fillxy" )
+    reclay.SetBackground( background )
+    reclay.SetOnTouchUp( function(){
+      reclay.Animate( "FadeOut" )
+      app.RemoveLayout( reclay )
+    })
+    reclay.Animate( "FadeIn" )
+    
+    let reclay_ctrlbtns = app.CreateLayout( "Linear", "VCenter,fillxy,touchthrough" )
+    reclay.AddChild( reclay_ctrlbtns )
+    
+    reclay_ctrlbtns.SetBackColor( "#000000" )
+    reclay_ctrlbtns.SetBackAlpha( 0.4 )
     /*
-    laymainbtns.Animate("FadeOut")
-    let mkluio = [laymainbtns.GetWidth(),laymainbtns.GetHeight()]
-    let lpo = app.CreateLayout( "Linear", "VCenter,fillxy" )
-    let lpo_g = app.CreateText( "Hello, world" )
-    lay.AddChild( lpo, 0 )
-    lay.RemoveChild( layother )
-    lpo.AddChild( lpo_g )
-    lpo.SetSize( 1,0.6 )
-    laymainbtns.SetSize( 1,1-0.045-0.6 )
-    */
+    let reclay_brightness_lay = app.CreateLayout( "Linear", "Horizontal" )
+    
+    let reclay_brightness_txt = app.CreateText( "[fa-sun-o]",null,null,"FontAwesome" )
+    reclay_brightness_txt.SetMargins( 0,0.008,0.04,0 )
+    reclay_brightness_txt.SetTextSize( 22 )
+    reclay_brightness_lay.AddChild(reclay_brightness_txt)
+    
+    
+    let reclay_brightness = app.CreateSeekBar( 0.75 )
+    reclay_brightness.SetOnTouch( (r)=>{app.SetScreenBrightness( r )} )
+    reclay_brightness.SetRange(1)
+    reclay_brightness_lay.AddChild(reclay_brightness)
+   
+   reclay_ctrlbtns.AddChild( reclay_brightness_lay )
+   */
+   let reclay_brightness = new RammerHorizontalSlider(reclay_ctrlbtns)
+   reclay_brightness.setonchange(function(g){
+     app.SetScreenBrightness( g )
+   })
+   reclay_brightness.setdrawown(function(obj,pos){
+     	  obj.SetLineWidth(4)
+	  obj.SetPaintColor(pos>0.11?"#444444":"#aaaaaa")
+	  obj.SetTextSize(26)
+	  obj.DrawText("[fa-sun-o]",0.07,0.066)
+	  obj.SetPaintColor("#ffffff")
+   })
+   reclay_brightness.show()
+    app.AddLayout( reclay )
   })
   
-  laycontrols_home = app.CreateButton( "[fa-circle]",null,0.05,"FontAwesome" )
+  laycontrols_home = app.CreateButton( "[fa-circle]",null,null,"FontAwesome" )
   laycontrols_home.SetBackAlpha( 0 )
-  laycontrols_home.SetMargins( 0.05,-0.0055,0,0 )
+  laycontrols_home.SetMargins( 0.05,-0.0055,/*0.22*/0,0 )
   laycontrols.AddChild( laycontrols_home )
-  laycontrols_home.unk = null
+  laycontrols_home.SetTextSize( 22 )
   laycontrols_home.SetOnTouch(function(){
     for(i=0;i<rammer.appstack.length;i++){
       if(rammer.appstack[i].txt==textapp.GetText()){
@@ -422,11 +451,13 @@ function RammerSystem_CheckUpdates()
 {
  'use strict'
  
- //let notif_ = new RammerNotification("System","Update available!",()=>{},"Img/rammer.png",null)
+ let notif_ = new RammerNotification("System","Update available!",()=>{},"Img/rammer.png",null)
                                        /*                          ^                ^                               ^             ^                           ^
                                              Title -------------|    Text ---|     Function ---------| Icon ---|           Sound ----|
                                        */
- //notif_.trigger()
+ if(RammerVersionCompare(RammerSystem_GetRemoteVersion(),version)==1){
+	  notif_.trigger()
+	}
 }
 
 function RammerSystem_ReloadDesktop()
@@ -925,21 +956,26 @@ laybrowserhoz.AddChild( backbtnbrowser );
 laybrowserhoz.AddChild( menubrowse );
 laybrowser.AddChild( browser );
 laybrowser.AddChild( laybrowserhoz1 );
-//browser_closebtn = new RammerCloseButton(laybrowser)
-//browser_closebtn.show()
+
 if(typeof(url)=="undefined"||typeof(url)=="object") {
 browser.LoadUrl(defaulturl)
 }else{
 browser.LoadUrl(url)
 }
-browser.SetOnTouch( function() {
+
+browser.SetOnUrl(function(u) {
 try{
-urldata = browser.GetUrl()
+urldata = u
+//alert(u)
+if(urldata.endsWith(".mp3")){
+RammerDownload_Confirm(urldata,"/sdcard/Rammer/Music/","Music.mp3")
+}else{
 addressurlbar.SetText( urldata );
+browser.LoadUrl( urldata )
 }
-catch(e) {
-}
+} catch(e) {}
 });
+
 laybrowser.show()
 }
 
@@ -1791,12 +1827,13 @@ T3dA = {}
 layterm = new RammerApp(lang=="ru"?"Терминал":"Terminal")
 newterm = app.CreateLayout( "Frame", "Vertical" )
 term_im = app.CreateImage( null, 1, 0.85 )
-term_im.SetPaintColor( "#000000" )
+term_im.SetPaintColor( "#444444" )
 nimg = app.CreateImage( app.LoadText( "RammerTerminalBG",null ),1,1 )
 term_im.DrawRectangle( 0,0,1,1 )
 term_im.DrawImage( nimg ,0,0,1,1 )
 // app.SaveText("RammerTerminalBG","/sdcard/Rammer/Pictures/terminal_bg.png")
 term_txte = app.CreateTextEdit( "Welcome to Rammer "+version+" terminal!\n",1,0.85 );
+layterm.cmdl = term_txte
 newterm.AddChild( term_im )
 term_txte.SetBackAlpha( 0 )
 newterm.AddChild( term_txte )
@@ -1818,7 +1855,7 @@ try{
 this.result = eval(cmd);
 term_txte.SetText(term_txte.GetText()+this.result+"\n");
 this.rpl = cmd.split(" ");
-cmd_data=this.rpl
+app_data.params=this.rpl
 }catch(e) { term_txte.SetText(term_txte.GetText()+"shell: unknown function or other error\n"+e+"\n"); }
 }
 }

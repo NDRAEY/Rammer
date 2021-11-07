@@ -9,7 +9,7 @@ class RammerApp {
         this.lay = app.CreateLayout("Linear", "Vertical,fillxy,Top");
         this._lay = app.CreateLayout( "Linear", "Vertical,fillxy,Top,TouchThrough" );
         this.lay.SetMargins(0,app.GetOrientation()=="Landscape"?0.07:0.03,0,0)
-        this.lay.SetSize( 1,app.GetOrientation()=="Landscape"?0.855:0.925)
+        this.lay.SetSize( 1,app.GetOrientation()=="Landscape"?0.845:0.915)
         this.state="unused"
         this.ifadded = false
         this.txt_prev = textapp.GetText()
@@ -929,15 +929,16 @@ class RammerNotification{
   
   this.msc = app.CreateMediaPlayer()
   this.msc.SetFile(typeof(this.sound)=="undefined"||this.sound==null?rammer_config.sounds.notifications:this.sound)
-  this.msc.SetOnReady(function() {
-    this.Play()
-  })
   this.evlay.AddChild( this.polk )
   }
   
   trigger(){
     this.nk.Animate("FlipFromTop",()=>{},300)
     app.AddLayout( this.nk )
+    //this.msc.Stop()
+    //this.msc.SetOnReady(function() {
+    this.msc.Play()
+    //})
     this.nk.nid = setTimeout(()=>{
       this.nk.Animate( "Fadeout",()=>{},300 )
       app.RemoveLayout( this.nk )
@@ -1130,4 +1131,137 @@ class RammerToggle{
   setontouch(func){
     this.ontouch=func
   }
+}
+
+
+class RammerHorizontalSlider {
+constructor(lay) {
+  this.lay = lay
+  this.l = app.CreateLayout( "Card", "Horizontal" )
+	this.l.SetCornerRadius( 20 )
+  this.l.SetBackColor( "#777777" )
+	this.l.SetSize( 0.7,0.11 )
+	
+	this.range = 1
+	this.onchange = function(e){}
+	this.ak = app.CreateImage( null, 1, 1, "FontAwesome" )
+	this.drawown = function(e){}
+	this.ak.SetAutoUpdate( false )
+	this.ak.onchange = this.onchange
+	this.ak.drawown = this.drawown
+	this.ak.SetOnTouchMove( (e)=>{
+	  this.ak.Clear()
+	  this.ak.DrawRectangle(0,0,e.X,1)
+	  this.drawown(this.ak,(this.range/this.l.GetWidth())*e.X)
+	  this.ak.Update()
+	  if(e.X<this.l.GetWidth()){
+	    this.onchange((this.range/this.l.GetWidth())*e.X)
+	  }
+	})
+	this.l.AddChild( this.ak )
+}
+setsize(w,h) {
+  this.l.SetSize( w,h )
+}
+show(){
+  this.lay.AddChild(this.l)
+  this.ak.drawown(this.ak,0)
+  this.ak.Update()
+}
+hide(){
+  this.lay.RemoveChild(this.l)
+}
+setonchange(func){
+  this.onchange = func
+  this.ak.onchange = func
+}
+setdrawown(func){
+  this.drawown = func // to be fixed
+  this.ak.drawown = func // to be fixed
+}
+setrange(r){
+  this.range = r
+}
+raw(){
+ return this.ak
+}
+}
+
+function RammerTerminal_GetTerminals(){
+'use strict'
+let tmp = []
+for(i=0;i<rammer.appstack.length;i++){
+  if(rammer.appstack[i].txt==(lang=="ru"?"Терминал":"Terminal")){
+    tmp.push(rammer.appstack[i])
+  }
+  //alert(rammer.appstack[i].txt)
+}
+return tmp
+}
+
+function RammerTerminal_GetCurrentTerminal(){
+'use strict'
+let tmp = RammerTerminal_GetTerminals();
+return tmp[tmp.length-1]
+}
+
+function RammerTerminal_Print(str){
+  'use strict'
+  let term = RammerTerminal_GetCurrentTerminal()
+  let Rlay = term.cmdl
+  Rlay.SetText(Rlay.GetText()+str+"\n")
+  return ""
+}
+
+function RammerDownload_Confirm(url,path,name) {
+  'use strict'
+  let ldr = app.CreateDialog( "Download" )
+	let ldr_lay = app.CreateLayout( "Linear", "VCenter" )
+	ldr_lay.SetSize( 0.9,0.2 )
+	ldr.AddLayout( ldr_lay )
+	
+  let ldr_lay_name = app.CreateLayout( "Linear", "Horizontal" )
+	let ldr_lay_name_text = app.CreateText( "Name: " )
+	ldr_lay_name_text.SetMargins( 0, 0.007 )
+	ldr_lay_name_text.SetTextSize( 18 )
+	ldr_lay_name.AddChild( ldr_lay_name_text )
+	
+	let ldr_lay_name_name = app.CreateTextEdit( name )
+	ldr_lay_name_name.SetSize( 0.7 )
+	ldr_lay_name.AddChild( ldr_lay_name_name )
+	ldr_lay.AddChild( ldr_lay_name )
+	
+	let ldr_lay_path = app.CreateLayout( "Linear", "Horizontal" )
+  let ldr_lay_path_text = app.CreateText( "Path: " )
+	ldr_lay_path_text.SetMargins( 0, 0.007 )
+	ldr_lay_path_text.SetTextSize( 18 )
+	ldr_lay_path.AddChild( ldr_lay_path_text )
+	
+	let ldr_lay_path_path = app.CreateTextEdit( path )
+	ldr_lay_path_path.SetSize( 0.7 )
+	ldr_lay_path.AddChild( ldr_lay_path_path )
+	ldr_lay.AddChild( ldr_lay_path )
+	
+	let ldr_lay_btns = app.CreateLayout( "Linear", "Horizontal" )
+	let ldr_lay_btns_cancel = app.CreateButton( "Cancel" )
+	ldr_lay_btns_cancel.dlg = ldr
+	ldr_lay_btns_cancel.SetOnTouch( function(){
+	  this.dlg.Dismiss()
+	})
+	ldr_lay_btns.AddChild( ldr_lay_btns_cancel )
+	ldr_lay.AddChild( ldr_lay_btns )
+	
+  let ldr_lay_btns_dwn = app.CreateButton( "Download" )
+	ldr_lay_btns_dwn.dlg = ldr
+	ldr_lay_btns_dwn.SetOnTouch( function(){
+	  this.dlg.Dismiss()
+	  let jdwn = app.CreateDownloader(  )
+	  jdwn.SetOnError( function(e){
+	    alert("Error: "+e)
+	  })
+	  jdwn.Download( url, path, name )
+	})
+	ldr_lay_btns.AddChild( ldr_lay_btns_dwn )
+	ldr_lay.AddChild( ldr_lay_btns )
+	ldr.Show()
 }
