@@ -1,6 +1,5 @@
-// Rammer by Andrey Pavlenko
-// Testing by Nikita Serkov and Nazar Prokudin
-// Translated to English by Andrey Pavlenko
+// Rammer by NDRAEY (Andrey Pavlenko)
+// Translated to English by NDRAEY (Andrey Pavlenko)
 
 // The Rammer Project 2020
 
@@ -11,7 +10,7 @@ https://notificationsounds.com/
 
 // Смена языка не реализована
 app.SetDebugEnabled( false )
-const version = "4.2.6"
+const version = "4.3"
 var codename, buildnumber, funnyphrase, isbeta, background_default = null
 var background, defaulturl, RammerDaysOfWeek = null
 var tmp_data, app_data, lang, notification = null
@@ -20,9 +19,18 @@ var RammerScreenWidth = app.GetScreenWidth(  );
 var RammerScreenHeight = app.GetScreenHeight(  )
 var mainscr, procs, notifs,  synth, cmd_data = null;
 var RammerChargeTrackerProg, RammerDSScreenValue = null
+var RammerVirtualFS = {
+'/':{
+  'type':'folder',
+  'date':new Date(),
+  'contents':{},
+}
+};
+var RammerVirtualFSCWD = "/";
 app.LoadScript( "builtins.js" );
+
 function init_vars() {
-codename = "Charmeleon" // Nekit's idea coming soon
+codename = "Herissmon" // Nekit's idea coming soon
 buildnumber = "Mainline" // Build Number turns into Version Stage
 // По JS дни начинаются с воскресенья // In JS days starts from Sunday
 RammerDaysOfWeek = [
@@ -50,9 +58,9 @@ lang=app.LoadText( "syslang",(app.GetLanguage()=="русский"?"ru":"en"));
 rammer_def_config = {"style":{"wireless":{"show":true},"battery":{"show":true,"percents":true}},"sounds":{"notifications":"Snd/notification.mp3"}}
 rammer_config = app.FileExists( "config.json" )?JSON.parse(app.ReadFile( "config.json" )):rammer_def_config
 
-funnyphrase = lang=="ru"?"Скоро сюда придёт кто-то и сломает систему заново.":"Nothing to see here"
+funnyphrase = lang=="ru"?"Кажись Digimon - это кое-что новое...":"Nothing to see here"
 background_default = "/Sys/Img/GreenBack.jpg"
-background = app.LoadText( "background","/Sys/Img/GreenBack.jpg" )
+background = app.LoadText( "background",background_default )
 dir = ["sdcard","Rammer"]
 dirf = ["sdcard","Rammer"]
 defaulturl = "Html/wygl_start_page.html"
@@ -77,6 +85,15 @@ RammerMonths=[
 {ru:"Декабрь",en:"December"}
 ]
 RammerDSScreenValue = (RammerScreenHeight/RammerScreenWidth)
+RammerServices = []
+RammerVirtualFS = {
+'/':{
+  'type':'folder',
+  'date':new Date(),
+  'contents':{},
+}
+};
+RammerVirtualFSCWD = "/"
 }
 // END INIT VARS
 function RammerSystem_ReloadEl()
@@ -692,6 +709,10 @@ clearInterval( mpupdater )
 lay.RemoveChild( laymainbtns );
 lay.RemoveChild( layotherstatusbar );
 app.RemoveLayout( lay );
+for(i in RammerServices){
+  RammerServices[i].stop()
+}
+RammerServices = null
 laymainbtns = null
 lay = null
 audioPlayer.Stop();
@@ -726,6 +747,7 @@ settingsbtn = null
 reloadvarsbtn = null
 layboot = null
 delete lay
+
 }
 
 function rammer_show_dialog(text, func, timer, size)
@@ -986,7 +1008,12 @@ function showinfo()
   let cb = new RammerCloseButton(layinfo)
   cb.show()
 // КОД ИНФОРМАЦИИ О СИСТЕМЕ >> 1
-let logo = app.CreateImage( "Img/rammer.png", 0.15 );
+let infolay_logo = app.CreateLayout( "Linear", "Horizontal,Left" )
+infolay_logo.SetMargins( 0, 0.03, 0, 0 )
+let infolay_info = app.CreateLayout( "Linear", "Vertical" )
+
+let logo = app.CreateImage( "Img/rammer.png", 0.3 );
+
 logo.SetOnTouchDown( function() {
 if(RammerDay==17 & RammerMonth==12) {
 soundPlayer1.Stop();
@@ -994,23 +1021,41 @@ soundPlayer1.SetFile( "Snd/bdaysound.mp3" );
 soundPlayer1.SetOnReady( function(){ soundPlayer1.Play() } );
 }else{ app.TextToSpeech( (lang=="ru"?"Версия ":"v. ")+version ); }
 });
-layinfo.AddChild( logo );
+logo.SetMargins( 0.05, 0, 0, 0 )
+infolay_logo.AddChild( logo );
+
 let txtvers = app.CreateText( version );
+
 let txtfunnyphrase = app.CreateText( funnyphrase, null, null, "Multiline" );
 txtfunnyphrase.SetTextSize( 17 );
+
 let txtcodename = app.CreateText( (lang=="ru"?"Кодовое имя: ":"Codename: ") + codename );
 txtcodename.SetTextSize( 17 )
+
 txtvers = app.CreateText( isbeta?(version+" beta ["+buildnumber+"]"):version );
-txtvers.SetTextSize( 30 );
-layinfo.AddChild( txtvers );
-layinfo.AddChild( txtfunnyphrase );
-layinfo.AddChild( txtcodename );
+txtvers.SetTextSize( 24 );
+
+infolay_info.AddChild( txtvers );
+infolay_info.AddChild( txtfunnyphrase );
+infolay_info.AddChild( txtcodename );
+/*
 let disptxt = app.CreateText( "Display resolution: "+app.GetDisplayWidth()+"x"+app.GetDisplayHeight() )
 disptxt.SetTextSize( 22 )
 layinfo.AddChild(disptxt)
+*/
+/*
 let developersbtn = app.CreateButton( "О разработчиках" )
 developersbtn.SetOnTouch( developersinfo );
 layinfo.AddChild( developersbtn );
+*/
+infolay_logo.AddChild( infolay_info )
+layinfo.AddChild( infolay_logo )
+
+let versionlogo = app.CreateImage( "Img/versionlogo.png", 0.2 )
+versionlogo.SetOnTouchDown( ()=>{
+  app.ShowPopup( "I'm "+codename+"! Rammer is the place where you can do anything while you not destroy the system ;)", "Bottom" )
+ })
+ layinfo.AddChild( versionlogo )
 // КОНЕЦ << 1
 layinfo.show()
 }
@@ -1024,17 +1069,37 @@ lay.close()
 delete lay;
 } );
 }
- // first RammerApp use...
+ //
 function music_activity()
-{
-this.bapp = new RammerApp(lang=="ru"?"Музыка":"Music");
-
-this.cb = new RammerCloseButton(this.bapp)
-this.cb.show()
-musiclist = app.CreateList( Array.prototype.concat(app.ListFolder( "/sdcard/Rammer/Music/",".mp3" ),app.ListFolder( "/sdcard/Rammer/Music/",".wav" ),app.ListFolder( "/sdcard/Rammer/Music/",".m4a" )),1,0.3 );
-musiclist.SetOnTouch(choosemusic);
-this.bapp.AddChild(musiclist)
-this.bapp.show()
+{/*
+*/
+'use strict'
+let service;
+/*
+if(!Rammer_FindService("Music")){
+service = new RammerService(null,"Music")
+service.fstart = ()=>{
+  alert("Service started!!!")
+}
+service.fstop = ()=>{
+  alert("Service stopped!!!")
+}
+service.start()
+}else{}
+*/
+service = Rammer_FindService("Music");
+if(!service){
+  let bapp = new RammerApp(lang=="ru"?"Музыка":"Music");
+  let cb = new RammerCloseButton(bapp)
+  cb.show()
+  let musiclist = app.CreateList( Array.prototype.concat(app.ListFolder( "/sdcard/Rammer/Music/",".mp3" ),app.ListFolder( "/sdcard/Rammer/Music/",".wav" ),app.ListFolder( "/sdcard/Rammer/Music/",".m4a" )),1,0.3 );
+  musiclist.SetOnTouch(choosemusic);
+  bapp.AddChild(musiclist)
+  bapp.show()
+}else{
+  //alert("Service exists!!!")
+  service.mapp.show()
+}
 }
 
 function choosemusic(file)
@@ -1048,12 +1113,21 @@ this.cb.SetAdditional(() => {layotherstatusbar.SetBackColor( "gray" );})
 laymscdfh = app.CreateLayout( "Linear", "Horizontal" );
 control_volume = app.CreateSeekBar( 0.38,null );
 
+if(!Rammer_FindService("Music")){
+service = new RammerService(null,"Music")
+service.fstart = ()=>{
+  //alert("Service started!!!")
+}
+service.fstop = ()=>{
+  audioPlayer.Stop()
+}
+
 control_play = app.CreateButton( "[fa-play]",null,null,"FontAwesome" );
 control_stop = app.CreateButton( "[fa-stop]",null,null,"FontAwesome" );
 control_pause = app.CreateButton( "[fa-pause]",null,null,"FontAwesome" );
 control_volume.SetRange( 1.2 );
 control_play.SetOnTouch( audioPlayer.Play );
-control_stop.SetOnTouch( audioPlayer.Stop );
+control_stop.SetOnTouch( ()=>{audioPlayer.Stop();service.stop()} );
 control_pause.SetOnTouch( audioPlayer.Pause );
 control_volume.SetOnTouch( function(a) {
 audioPlayer.SetVolume( a,a )
@@ -1063,10 +1137,14 @@ app.ShowPopup( lang=="ru"?"Громкость: "+Math.floor(a*100):"Volume: "+Ma
 musicutil = new RammerUtility();
 musicutil.AddChildMul(laymscdfh,[control_play,control_pause,control_stop,control_volume])
 
+service.mapp = this.bapp
 this.bapp.AddChild( laymscdfh );
 this.bapp.show()
+service.start()
+}
 }
 
+//
 function readdir(dir)
 {
 return app.ListFolder( dir );
@@ -1330,15 +1408,15 @@ function snapcamera()
 function photo_activity(x,file_)
 {
 //alert(JSON.stringify(file_))
-layphoto=new RammerApp(lang=="ru"?"Галерея":"Gallery");
+layphoto=new RammerApp(typeof(file_)=="undefined"?(lang=="ru"?"Галерея":"Gallery"):(lang=="ru"?"Просмотр фото":"View"));
 layphoto.show()
-imgphoto = app.CreateImage( file_, 1, 0.9 );
+imgphoto = app.CreateImage( file_, 1, 0.85 );
 if(typeof(file_)=="undefined") {
 file_=null
 // GALLERY CODE HERE
-this.path = "/"+ToFolder(['sdcard','Rammer','Pictures'])
+pathp = "/"+ToFolder(['sdcard','Rammer','Pictures'])
 //alert(this.path)
-var photos_lists = Array.prototype.concat(app.ListFolder( this.path,"png"),app.ListFolder( this.path,"jpg" ))
+var photos_lists = Array.prototype.concat(app.ListFolder( pathp,"png"),app.ListFolder( pathp,"jpg" ))
 	photos_scrl_ = app.CreateScroller(1,0.86)
 	photos_scrl = app.CreateLayout( "Linear", "Vertical" )
 	//photos_scrl.SetBackColor( "#cc22cc" )
@@ -1350,8 +1428,17 @@ var photos_lists = Array.prototype.concat(app.ListFolder( this.path,"png"),app.L
     photos_newlay = app.CreateLayout( "Linear", "Horizontal" )
     photos_scrl.AddChild( photos_newlay )
     }
-    photos_img = app.CreateImage( this.path+photos_lists[i],0.31,0.3/(app.GetScreenHeight()/app.GetScreenWidth()) )
-    photos_img.SetMargins( 0, 0, 0.02, 0.01 )
+    photos_img = app.CreateImage( pathp+photos_lists[i],0.31,0.3/(app.GetScreenHeight()/app.GetScreenWidth()) )
+    photos_img.SetMargins( 0, 0, 0.02, 0.01 );
+    photos_img.url = (pathp+photos_lists[i]);
+    
+    (function(n){
+    'use strict'
+    photos_img.SetOnTouchDown(function(){
+      photo_activity({},this.url)
+    })
+    })(i);
+    
     //alert("Processing: "+this.path+photos_lists[i])
     photos_newlay.AddChild( photos_img )
 		}
@@ -1361,22 +1448,27 @@ this.cb=new RammerCloseButton(layphoto)
 this.cb.show()
 }
 
+function open_photo_n(z,path,l){
+      photo_activity({},path+l[z])
+//      alert(z)
+}
+
 function developersinfo()
 {
-laydevinfo = app.CreateLayout( "Linear", "Vertical,fillxy" );
-laydevinfo.SetBackGradient( "blue","green","red" );
+laydevinfo = new RammerApp("О разработчиках")
+laydevinfo.lay.SetBackGradient( "blue","green","red" );
 	txtdev1info = app.CreateText( "",null, null, "Multiline" );
 txtdev1info.SetHtml(lang=="ru"?"<b>Андрей Павленко</b> [andrejpavlenko666@gmail.com] - разработчик, бета тестер, и дизайнер (хотя дизайна нет)":"<b>Andrey Pavlenko</b> [andrejpavlenko666@gmail.com] - main developer, secondary beta-tester and designer (no design)");
+laydevinfo.AddChild( txtdev1info )
+/*
 txtdev2info = app.CreateText( "",null, null, "Multiline" );
 txtdev2info.SetHtml(lang=="ru"?"Никита Серков [Main BETA-tester] [lirina.molk0000@gmail.com] - бета тестер и генератор идей.":"Nikita Serkov [Main BETA-tester] [WoT: NikSerNagibator30]  - main beta-tester and idea generator.")
-laydevinfo.AddChild( txtdev1info )
 laydevinfo.AddChild( txtdev2info );
 txtdev3info = app.CreateText( "",null, null, "Multiline" );
 txtdev3info.SetHtml(lang=="ru"?"Назар Прокудин [nazarprokudin74@gmail.com] - бета тестер":"Nazar Prokudin - beta tester.")
 laydevinfo.AddChild( txtdev3info )
-
-addclosebtn(laydevinfo)
-app.AddLayout( laydevinfo );
+*/
+laydevinfo.show()
 }
 
 function screenlock(password)

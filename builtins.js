@@ -1213,6 +1213,43 @@ function RammerTerminal_Print(str){
   return ""
 }
 
+class RammerProgressBarLoadingAnim{
+  constructor(lay,w){
+    this.lay = lay
+    this.img = app.CreateImage(null,w,0.01)
+    this.img.SetAutoUpdate(false)
+    this.ticks = 0
+    this.added = false
+    this.width = 0.5
+  }
+  start(){
+    this.an = setInterval(()=>{
+      this.img.Clear()
+      this.img.SetPaintColor("gray")
+      this.img.DrawRectangle(0,0,1,1)
+      this.img.SetPaintColor("white")
+      this.img.DrawRectangle((this.ticks/100)-this.width,0,this.ticks/100,1)
+      this.img.Update()
+      this.ticks+=3.5
+      if(this.ticks>150){ this.ticks=0 }
+    },1000/30)
+  }
+  stop(){
+      this.img.Clear()
+      this.img.SetPaintColor("gray")
+      this.img.DrawRectangle(0,0,1,1)
+      this.img.SetPaintColor("white")
+      this.img.DrawRectangle((this.ticks/100)-this.width,0,this.ticks/100,1)
+      this.img.Update()
+      this.ticks+=3.5
+      if(this.ticks>150){ this.ticks=0 }
+    clearInterval(this.an)
+  }
+  show(){
+    if(!this.added) { this.lay.AddChild(this.img); this.start() }
+  }
+}
+
 function RammerDownload_Confirm(url,path,name) {
   'use strict'
   let ldr = app.CreateDialog( "Download" )
@@ -1259,9 +1296,99 @@ function RammerDownload_Confirm(url,path,name) {
 	  jdwn.SetOnError( function(e){
 	    alert("Error: "+e)
 	  })
-	  jdwn.Download( url, path, name )
+	  jdwn.Download( url, ldr_lay_path_path.GetText(), name )
 	})
 	ldr_lay_btns.AddChild( ldr_lay_btns_dwn )
 	ldr_lay.AddChild( ldr_lay_btns )
 	ldr.Show()
+}
+
+class RammerService{
+  constructor(app,title){
+    this.fstart=function(){}
+    this.fstop=function(){}
+    this.app=app
+    this.title=title
+    this.state = "unused"
+    RammerServices.push(this)
+    this.num = RammerServices.length-1
+  }
+  
+  start(){
+    this.fstart()
+    this.state="running"
+  }
+  
+  stop(){
+    this.fstop()
+    this.state="stopped"
+    RammerServices.splice(this.num,1)
+  }
+}
+
+function Rammer_FindService(title){
+  for(i in RammerServices){
+    if(title==RammerServices[i].title){
+      return RammerServices[i]
+    }
+  }
+}
+
+
+function RammerVFSList(){
+  return RammerVirtualFS
+}
+
+function RammerVFSExists(path){
+  return RammerVFSGet(path)!=null
+}
+
+function RammerVFSGet(fld) {
+  'use strict'
+  let wd = fld.split("/")
+  wd = wd.filter(i=>i!=="")
+  let nav = RammerVirtualFS['/']
+  if(wd.length==0) {
+    return nav
+  }
+  for(let i in wd) {
+    //RammerTerminal_Print("Scanning "+wd[i]+"...")
+    if(typeof nav['contents'][wd[i]] == "undefined") {
+      return null
+    }
+    nav = nav['contents'][wd[i]]
+  }
+  return nav
+}
+
+function RammerVFSMkdir1(fld) {
+  'use strict'
+  let cwd = RammerVirtualFSCWD+fld
+  cwd = cwd.split("/")
+  if(fld.split("/").length>(fld[0]=="/"?2:1)) {
+    RammerTerminal_Print("Could not create subdirs in Mkdir1")
+    return
+  }
+  cwd = cwd.filter(item=>item!=="")
+  let navig = "/"+cwd.splice(0,cwd.length-1).join("/")
+  
+  let folder = RammerVFSGet(navig)
+  folder['contents'][cwd] = {
+    'type':'folder',
+    'datetime':new Date(),
+    'contents':{}
+  }
+  return [navig, cwd] // Navigate to [0] and create [1]
+}
+
+function RammerVFSMkdir(folder){
+  'use strict'
+  let oldcwd = RammerVirtualFSCWD
+  let fld = folder.split("/")
+  fld = fld.filter(i=>i!=="")
+  for(let i in fld) {
+    RammerVFSMkdir1(fld[i])
+    RammerVirtualFSCWD+=fld[i]+"/"
+    //RammerTerminal_Print("Now CWD is: "+RammerVirtualFSCWD)
+  }
 }
