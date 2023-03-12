@@ -1,0 +1,27 @@
+<meta charset="utf-8"></meta>
+<h2>Welcome to SurfIt!</h2>
+<h3><image src="surfit.png" width="84" height="74" id="logo"></image> SurfIt - The Rammer browser.</h3>
+
+<h3> Start page. </h3>
+<div id="yandex">
+<img src="yandex.jpg" onclick="window.open('https://yandex.ru')" width="50" height="50"></img><b><span id="red">Y</span>andex</b>
+</div>
+<p>
+<div id="google">
+	<img src="google.jpg" onclick="window.open('https://google.ru')" width="50" height="50"></img><b>Google</b>
+</div>
+<p>
+<div id="youtube">
+<img src="youtube.jpg" onclick="window.open('https://m.youtube.com')" width="70" height="50"></img><b><span id="red">You</span>Tube</b>
+</div>
+<style>
+	#red {
+		color:red
+	}
+</style>
+<script>
+	var dt = new Date()
+	if(dt.getMonth()==11) {
+ document.getElementById("logo").src = "surfit-pikachu.png"
+	}
+</script>
