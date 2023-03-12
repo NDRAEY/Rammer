@@ -21,7 +21,9 @@ var repeat_music, RammerChargeTrackerMgr, show_bp, bootanimationtime, RammerOrie
 var RammerScreenWidth = app.GetScreenWidth();
 var RammerScreenHeight = app.GetScreenHeight()
 var mainscr, procs, notifs, synth, cmd_data = null;
-var RammerChargeTrackerProg, RammerDSScreenValue = null
+var RammerChargeTrackerProg, RammerDSScreenValue = null;
+
+var langtable = {};
 
 var RammerVirtualFS = {
 	'/': {
@@ -41,6 +43,10 @@ function init_vars() {
 
 	// По JS дни начинаются с воскресенья
 	// In JS days starts from Sunday
+
+	if (app.FileExists("lang.json")) {
+		langtable = JSON.parse(app.ReadFile("lang.json"))
+	}
 
 	RammerDaysOfWeek = [{
 			ru: "Воскресенье",
@@ -100,7 +106,7 @@ function init_vars() {
 	}
 	rammer_config = app.FileExists("config.json") ? JSON.parse(app.ReadFile("config.json")) : rammer_def_config
 
-	funnyphrase = lang == "ru" ? "Кажись Digimon - это кое-что новое..." : "Nothing to see here"
+	funnyphrase = T("Nothing to see here")
 	background_default = "/Sys/Img/GreenBack.jpg"
 	background = app.LoadText("background", background_default)
 	dir = ["sdcard", "Rammer"]
@@ -172,6 +178,15 @@ function init_vars() {
 	};
 	RammerVirtualFSCWD = "/"
 }
+
+function T(t) {
+	if(langtable[t] && langtable[t][lang]) {
+		return langtable[t][lang];
+	}else{
+		return t;
+	}
+}
+
 // END INIT VARS
 function RammerSystem_ReloadEl() {
 	el = [{
@@ -194,8 +209,8 @@ function RammerSystem_ReloadEl() {
 		},
 		{
 			name: {
-				ru: "Фото",
-				en: "Photos"
+				ru: T("Photos"),
+				en: T("Photos")
 			},
 			func: photo_activity,
 			custom: false,
@@ -2113,33 +2128,7 @@ function notes_activity() {
 		notes.filter(del);
 	}
 }
-/*
-function settings_activity() {
-settingsbtn.SetEnabled( false );
-laysettings = app.CreateLayout( "Linear", "Vertical,fillxy" );
-laysettings.SetBackColor( "gray" );
-laysettings1 = app.CreateLayout( "Linear", "Horizontal" );
 
-langbtn = app.CreateButton( "Language: "+lang );
-langbtn.SetOnTouch( function() {
-if(lang=="ru") {
-app.SaveText( "syslang","en" );
-lang="en"
-langbtn.SetText( "Language: "+lang );
-}else{
-app.SaveText( "syslang","ru" );
-lang="ru"
-langbtn.SetText( "Language: "+lang );
-}
-alert("Please click on Reboot button");
-} );
-laysettings1.AddChild( langbtn );
-
-laysettings.AddChild( laysettings1 );
-addclosebtnsettings(laysettings)
-app.AddLayout( laysettings );
-}
-*/
 function RammerSystem_InstallPackageSimple(src) {
 	app.UnzipFile(src, "/sdcard/Rammer/Apps/");
 }
